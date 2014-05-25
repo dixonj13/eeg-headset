@@ -36,12 +36,35 @@ headset::~headset()
   channels.clear();
 }
 
-int headset::channel_add(EE_DataChannels_enum chan)
+bool headset::channel_exists(EE_DataChannels_enum channel)
 {
-  if (num_channels >= CHANNEL_BUFFER_SIZE) return 1;
-  channels.push_back(chan);
+  for (int i = 0; i < num_channels; i++)
+  {
+    if (channels[i] == channel) return true;
+  }
+  return false;
+}
+
+int headset::channel_add(EE_DataChannels_enum channel)
+{
+  if ((num_channels >= CHANNEL_BUFFER_SIZE) || channel_exists(channel)) return -1;
+  channels.push_back(channel);
   num_channels++;
   return 0;
+}
+
+int headset::channel_remove(EE_DataChannels_enum channel)
+{
+  for (int i = 0; i < num_channels; i++)
+  {
+    if (channels[i] == channel)
+    {
+      channels.erase(channels.begin() + i);
+      num_channels--;
+      return 0;
+    }
+  }
+  return -1;
 }
 
 EE_DataChannels_enum headset::channel_get(int n)
@@ -52,5 +75,10 @@ EE_DataChannels_enum headset::channel_get(int n)
 int main()
 {
   headset h;
-  printf("%i", h.channel_get(0));
+  printf("%i\n", h.channel_get(0));
+  printf("%s\n", h.channel_exists(ED_P7) ? "true" : "false");
+  h.channel_add(ED_P7);
+  printf("%s\n", h.channel_exists(ED_P7) ? "true" : "false");
+  h.channel_remove(ED_P7);
+  printf("%s\n", h.channel_exists(ED_P7) ? "true" : "false");
 }

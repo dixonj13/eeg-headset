@@ -24,7 +24,9 @@ class headset
   public:
     headset();
     ~headset();
-    int channel_add(EE_DataChannels_enum ch);
+    bool channel_exists(EE_DataChannels_enum channel);
+    int channel_add(EE_DataChannels_enum channel);
+    int channel_remove(EE_DataChannels_enum channel);
     EE_DataChannels_enum channel_get(int n);
 };
 

@@ -76,6 +76,7 @@ void headset::HS_data_capture()
 }
 
 void headset::HS_data_CSV_write()
+// Write to file in the CSV format
 {
 
 }

@@ -24,10 +24,12 @@ class headset
   public:
     headset();
     ~headset();
-    bool channel_exists(EE_DataChannels_enum channel);
-    int channel_add(EE_DataChannels_enum channel);
-    int channel_remove(EE_DataChannels_enum channel);
-    EE_DataChannels_enum channel_get(int n);
+    bool HS_channel_exists(EE_DataChannels_enum channel);
+    int HS_channel_add(EE_DataChannels_enum channel);
+    int HS_channel_remove(EE_DataChannels_enum channel);
+    EE_DataChannels_enum HS_channel_get(int n);
+    void HS_data_capture();
+    void HS_data_CSV_write();
 };
 
 #endif

@@ -5,21 +5,12 @@
 #include <vector>
 const int CHANNEL_BUFFER_SIZE = 24;
 
-class headset_data
-{
-  unsigned int num_signals;
-  double** data_buffer;
-
-  public:
-    headset_data();
-    ~headset_data();
-};
-
 class headset
 {
   std::vector<EE_DataChannels_enum> channels;
   int num_channels;
-  headset_data data;
+  double** data_buffer;
+  unsigned int num_signals;
 
   public:
     headset();
@@ -29,7 +20,7 @@ class headset
     int HS_channel_remove(EE_DataChannels_enum channel);
     EE_DataChannels_enum HS_channel_get(int n);
     void HS_data_capture();
-    void HS_data_CSV_write();
+    void HS_data_CSV_write(FILE* f);
 };
 
 #endif

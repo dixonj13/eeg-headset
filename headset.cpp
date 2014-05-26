@@ -1,34 +1,25 @@
 #include "headset.h"
 #include <cstdio>
-#include <cstring>
 
-headset_data::headset_data()
+headset::headset()
 {
+  channels.push_back(ED_TIMESTAMP);
   data_buffer = new double*[CHANNEL_BUFFER_SIZE];
   for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
   {
     data_buffer[i] = NULL;
   }
-}
-
-headset_data::~headset_data()
-{
-  for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
-  {
-    delete[] data_buffer[i];
-  }
-  delete[] data_buffer;
-}
-
-headset::headset()
-{
-  channels.push_back(ED_TIMESTAMP);
   num_channels = 1;
 }
 
 headset::~headset()
 {
   channels.clear();
+  for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
+  {
+    delete[] data_buffer[i];
+  }
+  delete[] data_buffer;
 }
 
 bool headset::HS_channel_exists(EE_DataChannels_enum channel)
@@ -72,13 +63,34 @@ void headset::HS_data_capture()
 // & Number_of_Samples through EE_DataGetNumberOfSample()
 // Then call EE_DataGet() for each open channel
 {
+  for (int i = 0; i < num_channels; i++)
+  {
+    if (data_buffer[i] != NULL)
+    {
+      delete[] data_buffer[i];
+    }
 
+    data_buffer[i] = new double[num_signals];
+    for (int j = 0; j < num_signals; j++)
+    {
+      printf("*simulate reading for channel_position %i, signal %i: ", i, j);
+      scanf("%lf", data_buffer[i][j]);
+    }
+  }
 }
 
-void headset::HS_data_CSV_write()
+void headset::HS_data_CSV_write(FILE* f)
 // Write to file in the CSV format
 {
-
+  int num_sig = num_signals;
+  for (int i = 0; i < num_sig; i++)
+  {
+    for (int j = 0; j < num_channels; j++)
+    {
+      fprintf(f, "%f", data_buffer[i][j]);
+      if (j < num_channels - 1) fprintf(f, ", ");
+    }
+  }
 }
 
 int main()

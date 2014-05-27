@@ -100,19 +100,12 @@ void headset::HS_data_CSV_write(FILE* f)
 
 int main()
 {
-  printf("%s\n", enumToStr(ED_F3));
-  printf("%i", enumIndex(ED_F3));
-  /*
   headset h;
-  h.HS_channel_add(ED_P7);
-  h.HS_channel_add(ED_P8);
-
-  FILE* f = fopen("data.txt", "w");
-  int num_samp;
-  printf("simulate number of signals: ");
-  scanf("%i", &num_samp);
-  h.HS_data_capture(num_samp);
-  h.HS_data_CSV_write(f);
-  fclose(f);
-  */
+  EE_DataChannels_enum E;
+  strToEnum("ED_TIMESTAMP", E);
+  h.HS_channel_add(E);
+  printf("%s\n", h.HS_channel_exists(E)?"true":"false");
+  h.HS_channel_remove(E);
+  printf("%s\n", h.HS_channel_exists(E)?"true":"false");
+  printf("index of %s: %i", enumToStr(E), enumIndex(E));
 }

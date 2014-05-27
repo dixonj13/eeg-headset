@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "headset.h"
+#include "edChannel_map.h"
 #include <cstdio>
 
 headset::headset()
@@ -99,17 +100,11 @@ void headset::HS_data_CSV_write(FILE* f)
 
 int main()
 {
+
+  /*
   headset h;
   h.HS_channel_add(ED_P7);
   h.HS_channel_add(ED_P8);
-  /*
-  printf("%i\n", h.HS_channel_get(0));
-  printf("%s\n", h.HS_channel_exists(ED_P7) ? "true" : "false");
-  h.HS_channel_add(ED_P7);
-  printf("%s\n", h.HS_channel_exists(ED_P7) ? "true" : "false");
-  h.HS_channel_remove(ED_P7);
-  printf("%s\n", h.HS_channel_exists(ED_P7) ? "true" : "false");
-  */
 
   FILE* f = fopen("data.txt", "w");
   int num_samp;
@@ -118,4 +113,5 @@ int main()
   h.HS_data_capture(num_samp);
   h.HS_data_CSV_write(f);
   fclose(f);
+  */
 }

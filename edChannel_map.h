@@ -3,13 +3,26 @@
 
 #include "edk.h"
 
-class edChannel_map
+const static EE_DataChannels_enum ENUM_MAP[] =
 {
-
-  public:
-    edChannel_map();
-    ~edChannel_map();
+  ED_COUNTER, ED_INTERPOLATED, ED_RAW_CQ,
+  ED_AF3, ED_F7, ED_F3, ED_FC5, ED_T7,
+  ED_P7, ED_O1, ED_O2, ED_P8, ED_T8,
+  ED_FC6, ED_F4, ED_F8, ED_AF4, ED_GYROX,
+  ED_GYROY, ED_TIMESTAMP, ED_ES_TIMESTAMP
 };
+
+const int ENUM_MAP_LEN = 21;
+
+const static char* ENUM_MAP_STR[] =
+{
+  "ED_COUNTER", "ED_INTERPOLATED", "ED_RAW_CQ",
+  "ED_AF3", "ED_F7", "ED_F3", "ED_FC5", "ED_T7",
+  "ED_P7", "ED_O1", "ED_O2", "ED_P8", "ED_T8",
+  "ED_FC6", "ED_F4", "ED_F8", "ED_AF4", "ED_GYROX",
+  "ED_GYROY", "ED_TIMESTAMP", "ED_ES_TIMESTAMP"
+};
+
 
 #endif
 

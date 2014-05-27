@@ -23,6 +23,14 @@ const static char* ENUM_MAP_STR[] =
   "ED_GYROY", "ED_TIMESTAMP", "ED_ES_TIMESTAMP"
 };
 
+EE_DataChannels_enum strToEnum(const char* chan);
+
+const char* enumToStr(EE_DataChannels_enum chan);
+
+int enumIndex(EE_DataChannels_enum chan);
+
+int enumIndex(const char* chan);
+
 
 #endif
 

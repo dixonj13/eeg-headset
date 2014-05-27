@@ -100,7 +100,8 @@ void headset::HS_data_CSV_write(FILE* f)
 
 int main()
 {
-
+  printf("%s\n", enumToStr(ED_F3));
+  printf("%i", enumIndex(ED_F3));
   /*
   headset h;
   h.HS_channel_add(ED_P7);

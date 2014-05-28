@@ -1,4 +1,4 @@
-#include "edChannel_map.h"
+#include "channelMap.h"
 #include <cstring>
 
 int strToEnum(const char* C, EE_DataChannels_enum& E)

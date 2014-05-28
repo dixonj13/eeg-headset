@@ -4,12 +4,14 @@
 #include "channelMap.h"
 #include <cstdio>
 
+const int a = 24;
+
 headset::headset()
 {
   channels.push_back(ED_TIMESTAMP);
   num_channels = 1;
-  data_buffer = new double*[CHANNEL_BUFFER_SIZE];
-  for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
+  data_buffer = new double*[a];
+  for (int i = 0; i < a; i++)
   {
     data_buffer[i] = NULL;
   }
@@ -18,7 +20,7 @@ headset::headset()
 headset::~headset()
 {
   channels.clear();
-  for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
+  for (int i = 0; i < a; i++)
   {
     delete[] data_buffer[i];
   }
@@ -61,7 +63,7 @@ EE_DataChannels_enum headset::HS_channel_get(int n)
   return channels[n];
 }
 
-void headset::HS_data_capture(unsigned int num_samp)
+void headset::HS_data_capture(unsigned int num_samp, DataHandle& hData)
 // Have to update a DataHandle through EE_DataUpdateHandle()
 // & Number_of_Samples through EE_DataGetNumberOfSample()
 // Then call EE_DataGet() for each open channel
@@ -70,17 +72,27 @@ void headset::HS_data_capture(unsigned int num_samp)
 
   for (int i = 0; i < num_channels; i++)
   {
+    //data_buffer[i] = NULL;
+    printf("loop initiated :: data_buffer[%i] null? %s\n", i, (data_buffer[i] == NULL)?"true":"false");
     if (data_buffer[i] != NULL)
     {
+      printf("attempting delete\n");
       delete[] data_buffer[i];
+      data_buffer[i] = NULL;
     }
 
     data_buffer[i] = new double[num_samples];
-    for (unsigned int j = 0; j < num_samples; j++)
+    printf("allocated new data_buffer slot for #%i\n", i);
+
+    //Check for correctness.
+    //EE_DataGet(hData, channels[i], data_buffer[i], num_samples); 
+    /*
+    for(unsigned int j = 0; j < num_samples; j++)
     {
-      printf("*simulate reading for channel_position %i, signal %i: ", i, j);
+      printf("enter info @ [%i][%i]", i, j);
       scanf("%lf", &data_buffer[i][j]);
-    }
+    }*/
+    
   }
 }
 
@@ -96,16 +108,4 @@ void headset::HS_data_CSV_write(FILE* f)
     }
     fprintf(f, "\n");
   }
-}
-
-int main()
-{
-  headset h;
-  EE_DataChannels_enum E;
-  strToEnum("ED_TIMESTAMP", E);
-  h.HS_channel_add(E);
-  printf("%s\n", h.HS_channel_exists(E)?"true":"false");
-  h.HS_channel_remove(E);
-  printf("%s\n", h.HS_channel_exists(E)?"true":"false");
-  printf("index of %s: %i", enumToStr(E), enumIndex(E));
 }

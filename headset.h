@@ -19,7 +19,7 @@ class headset
     int HS_channel_add(EE_DataChannels_enum channel);
     int HS_channel_remove(EE_DataChannels_enum channel);
     EE_DataChannels_enum HS_channel_get(int n);
-    void HS_data_capture(unsigned int num_sig);
+    void HS_data_capture(unsigned int num_sig, DataHandle& hData);
     void HS_data_CSV_write(FILE* f);
 };
 

@@ -1,6 +1,5 @@
 #include <cstdio>
-#include <ctime>
-#include <cmath>
+#include "timeUtil.h"
 #include "edk.h"
 #include <fstream>
 #include <string>
@@ -161,41 +160,6 @@ void write_ChannelList(Sensor& s, FILE* f)
   fprintf(f, "\n");
 }
 
-//========================================================
-//                        timer
-//========================================================
-// timer is a value that keeps track of elapsed time.
-//========================================================
- 
-struct timer
-{
-  time_t start;
-};
-
-//========================================================
-//                      timeStart
-//========================================================
-// timeStart(T) initiates timer T to begin keeping track
-// of elapsing time.
-//========================================================
-  
-void timeStart(timer& T)
-{
-  T.start = time(0);
-}
-
-//========================================================
-//                        timeSpent
-//========================================================
-// timeSpent(T) returns the time elapsed since timer T
-// was started.
-//========================================================
-  
-unsigned int timeSpent(const timer& T)
-{
-  return ((unsigned int)(time(0) - T.start));
-}
-
 //=================================================================================================
 //										eegConnectionTest
 //=================================================================================================
@@ -290,10 +254,10 @@ void eegResponseTest(FILE* f)
 	DataHandle hData = EE_DataCreate();
 
 	timer t;
-	timeStart(t);
+	t.time_start();
 	unsigned int dataTime;
 
-	while(timeSpent(t) <= runTime)
+	while(t.time_spent() <= runTime)
 	{
 		currentState = EE_EngineGetNextEvent(eEvent);
 		EE_Event_t eventType = EE_EmoEngineEventGetType(eEvent);
@@ -308,7 +272,7 @@ void eegResponseTest(FILE* f)
 
 		if(collectionStatus)
 		{
-			dataTime = timeSpent(t);
+			dataTime = t.time_spent();
 			EE_DataUpdateHandle (0, hData);
 			unsigned int numSamples = 0;
 			EE_DataGetNumberOfSample(hData, &numSamples);

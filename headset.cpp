@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "headset.h"
-#include "edChannel_map.h"
+#include "channelMap.h"
 #include <cstdio>
 
 headset::headset()

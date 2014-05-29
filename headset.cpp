@@ -4,14 +4,15 @@
 #include "channelMap.h"
 #include <cstdio>
 
-const int a = 24;
+#define DEBUG
+const int CHANNEL_BUFFER_SIZE = 24;
 
 headset::headset()
 {
   channels.push_back(ED_TIMESTAMP);
   num_channels = 1;
-  data_buffer = new double*[a];
-  for (int i = 0; i < a; i++)
+  data_buffer = new double*[CHANNEL_BUFFER_SIZE];
+  for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
   {
     data_buffer[i] = NULL;
   }
@@ -20,7 +21,7 @@ headset::headset()
 headset::~headset()
 {
   channels.clear();
-  for (int i = 0; i < a; i++)
+  for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
   {
     delete[] data_buffer[i];
   }
@@ -63,6 +64,16 @@ EE_DataChannels_enum headset::HS_channel_get(int n)
   return channels[n];
 }
 
+void headset::HS_channel_write(FILE* f)
+{
+  for (int i = 0; i < num_channels; i++)
+  {
+    fprintf(f, "%s", enumToStr(channels[i]));
+    if (i < num_channels - 1) fprintf(f, ", ");
+  }
+  fprintf(f, "\n");
+}
+
 void headset::HS_data_capture(unsigned int num_samp, DataHandle& hData)
 // Have to update a DataHandle through EE_DataUpdateHandle()
 // & Number_of_Samples through EE_DataGetNumberOfSample()
@@ -72,27 +83,33 @@ void headset::HS_data_capture(unsigned int num_samp, DataHandle& hData)
 
   for (int i = 0; i < num_channels; i++)
   {
-    //data_buffer[i] = NULL;
-    printf("loop initiated :: data_buffer[%i] null? %s\n", i, (data_buffer[i] == NULL)?"true":"false");
+    #ifdef DEBUG
+      printf("loop initiated :: data_buffer[%i] :: null ? %s\n", i, (data_buffer[i] == NULL)?"true":"false"); 
+    #endif
     if (data_buffer[i] != NULL)
     {
-      printf("attempting delete\n");
+      #ifdef DEBUG 
+        printf("  attempting delete on data_buffer[%i]\n", i);
+      #endif 
       delete[] data_buffer[i];
       data_buffer[i] = NULL;
     }
 
     data_buffer[i] = new double[num_samples];
-    printf("allocated new data_buffer slot for #%i\n", i);
+    #ifdef DEBUG 
+      printf("  allocated new data_buffer slot for [%s]\n", enumToStr(channels[i]));
+    #endif
 
-    //Check for correctness.
-    //EE_DataGet(hData, channels[i], data_buffer[i], num_samples); 
-    /*
-    for(unsigned int j = 0; j < num_samples; j++)
-    {
-      printf("enter info @ [%i][%i]", i, j);
-      scanf("%lf", &data_buffer[i][j]);
-    }*/
-    
+    //EE_DataGet(hData, channels[i], data_buffer[i], num_samples);
+
+    #ifdef DEBUG
+      for(unsigned int j = 0; j < num_samples; j++)
+      {
+        printf("  enter info @ [%s],[sample #%i]: ", enumToStr(channels[i]), j);
+        scanf("%lf", &data_buffer[i][j]);
+      }
+      printf("\n");
+    #endif
   }
 }
 
@@ -108,4 +125,21 @@ void headset::HS_data_CSV_write(FILE* f)
     }
     fprintf(f, "\n");
   }
+}
+
+int main()
+{
+  FILE* f = fopen("data.txt", "w");
+  headset h;
+  h.HS_channel_add(ED_P7);
+  printf("%s\n", enumToStr(h.HS_channel_get(0)));
+  printf("%s\n", enumToStr(h.HS_channel_get(1)));
+  h.HS_channel_write(f);
+  DataHandle d;
+  printf("\n");
+  h.HS_data_capture(2, d);
+  h.HS_data_CSV_write(f);
+  h.HS_data_capture(2, d);
+  h.HS_data_CSV_write(f);
+  fclose(f);
 }

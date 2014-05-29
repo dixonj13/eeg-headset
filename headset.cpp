@@ -7,6 +7,9 @@
 #define DEBUG
 const int CHANNEL_BUFFER_SIZE = 24;
 
+/* The default constructor yeilds a headset that is
+* listening to ED_TIMESTAMP, and an empty data buffer.
+*/
 headset::headset()
 {
   channels.push_back(ED_TIMESTAMP);
@@ -28,28 +31,41 @@ headset::~headset()
   delete[] data_buffer;
 }
 
-bool headset::HS_channel_exists(EE_DataChannels_enum channel)
+/* channel_exists(C) returns true if chanel C is being
+* listened to by the headset.
+*/
+bool headset::channel_exists(EE_DataChannels_enum C)
 {
   for (int i = 0; i < num_channels; i++)
   {
-    if (channels[i] == channel) return true;
+    if (channels[i] == C) return true;
   }
   return false;
 }
 
-int headset::HS_channel_add(EE_DataChannels_enum channel)
+/* channel_add(C) attempts to add channel C to the list
+* of channels. If C is succesfully added, 0 is returned.
+* If C is already being listened to or the list of
+* channels is full -1 is returned.
+*/
+int headset::channel_add(EE_DataChannels_enum C)
 {
-  if ((num_channels >= CHANNEL_BUFFER_SIZE) || HS_channel_exists(channel)) return -1;
-  channels.push_back(channel);
+  if ((num_channels >= CHANNEL_BUFFER_SIZE) || channel_exists(C)) return -1;
+  channels.push_back(C);
   num_channels++;
   return 0;
 }
 
-int headset::HS_channel_remove(EE_DataChannels_enum channel)
+/* channel_remove(C) attempts to remove channel C from
+* the list of channels. If C is succesfully removed, 0 is
+* returned. If C is not a valid channel for removal -1
+* is returned.
+*/
+int headset::channel_remove(EE_DataChannels_enum C)
 {
   for (int i = 0; i < num_channels; i++)
   {
-    if (channels[i] == channel)
+    if (channels[i] == C)
     {
       channels.erase(channels.begin() + i);
       num_channels--;
@@ -59,12 +75,19 @@ int headset::HS_channel_remove(EE_DataChannels_enum channel)
   return -1;
 }
 
-EE_DataChannels_enum headset::HS_channel_get(int n)
+/* channel_get(n) returns the channel at location n in
+* the channel list.
+*/
+EE_DataChannels_enum headset::channel_get(int n)
 {
   return channels[n];
 }
 
-void headset::HS_channel_write(FILE* f)
+/* channel_write(f) writes the list of channels currently
+* being listened to on one line separated by a comma and
+* a space. (CSV Format)
+*/
+void headset::channel_CSV_write(FILE* f)
 {
   for (int i = 0; i < num_channels; i++)
   {
@@ -74,10 +97,12 @@ void headset::HS_channel_write(FILE* f)
   fprintf(f, "\n");
 }
 
-void headset::HS_data_capture(unsigned int num_samp, DataHandle& hData)
-// Have to update a DataHandle through EE_DataUpdateHandle()
-// & Number_of_Samples through EE_DataGetNumberOfSample()
-// Then call EE_DataGet() for each open channel
+/* data_capture(num_sig, hData) clears the data buffer of
+* its current contents and replaces it with the info in
+* hData. num_sig defines the number of signals for each
+* channel being stored into the data buffer.
+*/
+void headset::data_capture(unsigned int num_samp, DataHandle& hData)
 {
   num_samples = num_samp;
 
@@ -113,8 +138,12 @@ void headset::HS_data_capture(unsigned int num_samp, DataHandle& hData)
   }
 }
 
-void headset::HS_data_CSV_write(FILE* f)
-// Write to file in the CSV format
+/* data_CSV_write(f) writes the info stored in the data
+* buffer into f. For every signal number, the contents of
+* every channel currently being listened to are written on
+* one line separated by a comma and a space. (CSV Format)
+*/
+void headset::data_CSV_write(FILE* f)
 {
   for (unsigned int i = 0; i < num_samples; i++)
   {
@@ -131,15 +160,15 @@ int main()
 {
   FILE* f = fopen("data.txt", "w");
   headset h;
-  h.HS_channel_add(ED_P7);
-  printf("%s\n", enumToStr(h.HS_channel_get(0)));
-  printf("%s\n", enumToStr(h.HS_channel_get(1)));
-  h.HS_channel_write(f);
+  h.channel_add(ED_P7);
+  printf("%s\n", enumToStr(h.channel_get(0)));
+  printf("%s\n", enumToStr(h.channel_get(1)));
+  h.channel_CSV_write(f);
   DataHandle d;
   printf("\n");
-  h.HS_data_capture(2, d);
-  h.HS_data_CSV_write(f);
-  h.HS_data_capture(2, d);
-  h.HS_data_CSV_write(f);
+  h.data_capture(2, d);
+  h.data_CSV_write(f);
+  h.data_capture(2, d);
+  h.data_CSV_write(f);
   fclose(f);
 }

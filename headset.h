@@ -17,18 +17,55 @@ class headset
 
   public:
 
-    /* The default constructor yeilds a headset with 
-     *sad
+    /* The default constructor yeilds a headset that is
+     * listening to ED_TIMESTAMP, and an empty data buffer.
      */
     headset();
     ~headset();
-    bool HS_channel_exists(EE_DataChannels_enum channel);
-    int HS_channel_add(EE_DataChannels_enum channel);
-    int HS_channel_remove(EE_DataChannels_enum channel);
-    EE_DataChannels_enum HS_channel_get(int n);
-    void headset::HS_channel_write(FILE* f);
-    void HS_data_capture(unsigned int num_sig, DataHandle& hData);
-    void HS_data_CSV_write(FILE* f);
+
+    /* channel_exists(C) returns true if chanel C is being 
+     * listened to by the headset.
+     */
+    bool channel_exists(EE_DataChannels_enum C);
+
+    /* channel_add(C) attempts to add channel C to the list 
+     * of channels. If C is succesfully added, 0 is returned. 
+     * If C is already being listened to or the list of 
+     * channels is full -1 is returned.
+     */
+    int channel_add(EE_DataChannels_enum C);
+
+    /* channel_remove(C) attempts to remove channel C from
+     * the list of channels. If C is succesfully removed, 0 is
+     * returned. If C is not a valid channel for removal -1
+     * is returned.
+     */
+    int channel_remove(EE_DataChannels_enum C);
+
+    /* channel_get(n) returns the channel at location n in
+     * the channel list.
+     */
+    EE_DataChannels_enum channel_get(int n);
+
+    /* channel_write(f) writes the list of channels currently
+     * being listened to on one line separated by a comma and
+     * a space.
+     */
+    void channel_CSV_write(FILE* f);
+
+    /* data_capture(num_sig, hData) clears the data buffer of
+     * its current contents and replaces it with the info in
+     * hData. num_sig defines the number of signals for each
+     * channel being stored into the data buffer.
+     */
+    void data_capture(unsigned int num_sig, DataHandle& hData);
+
+    /* data_CSV_write(f) writes the info stored in the data
+     * buffer into f. For every signal number, the contents of
+     * every channel currently being listened to are written on
+     * one line separated by a comma and a space.
+     */
+    void data_CSV_write(FILE* f);
 };
 
 #endif

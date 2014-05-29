@@ -2,3 +2,4 @@
 *.vcxproj
 DEBUG/
 sensor.*
+*.txt

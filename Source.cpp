@@ -38,6 +38,9 @@ void eegResponseTest(FILE* f, headset& h)
 	timer t;
 	t.time_start();
 	unsigned int dataTime;
+
+  h.channel_CSV_write(f);
+
 	while(t.time_spent() <= runTime)
 	{
 		currentState = EE_EngineGetNextEvent(eEvent);
@@ -60,19 +63,24 @@ void eegResponseTest(FILE* f, headset& h)
 
 			if(numSamples!=0)
 			{
-        printf("Getting Data \n");
-        //Program Fails Here
-        h.HS_data_capture(numSamples, hData);
-        printf("writing data \n");
-        h.HS_data_CSV_write(f);
+        h.data_capture(numSamples, hData);
+        h.data_CSV_write(f);
 			}
 		}
 	counter = counter +1;
 	}
 }
 
-void channelAdd(headset h)
+//================================================================
+//                             channelAdd
+//================================================================
+//Adds a new channel to headset h. All channels can be added at once
+//by entering "all" when prompted to enter a channel.
+//================================================================
+
+void channelAdd(headset& h)
 {
+  printf("\n");
   bool quit = false;
   char userInput[40];
   EE_DataChannels_enum E;
@@ -82,32 +90,34 @@ void channelAdd(headset h)
     scanf("%s", userInput);
     if(!strcmp(userInput, "all"))
     {
-      h.HS_channel_add(ED_AF4);
-      h.HS_channel_add(ED_F8);
-      h.HS_channel_add(ED_F4);
-      h.HS_channel_add(ED_FC6);
-      h.HS_channel_add(ED_T8);
-      h.HS_channel_add(ED_P8);
-      h.HS_channel_add(ED_O2);
-      h.HS_channel_add(ED_O1);
-      h.HS_channel_add(ED_P7);
-      h.HS_channel_add(ED_T7);
-      h.HS_channel_add(ED_FC5);
-      h.HS_channel_add(ED_F3);
-      h.HS_channel_add(ED_F7);
-      h.HS_channel_add(ED_AF3);
+      h.channel_add(ED_AF4);
+      h.channel_add(ED_F8);
+      h.channel_add(ED_F4);
+      h.channel_add(ED_FC6);
+      h.channel_add(ED_T8);
+      h.channel_add(ED_P8);
+      h.channel_add(ED_O2);
+      h.channel_add(ED_O1);
+      h.channel_add(ED_P7);
+      h.channel_add(ED_T7);
+      h.channel_add(ED_FC5);
+      h.channel_add(ED_F3);
+      h.channel_add(ED_F7);
+      h.channel_add(ED_AF3);
       printf("All channels added \n\n");
       quit = true;
     }
-    else if(!strcmp(userInput, "exit"))
+    else if(!strcmp(userInput, "quit"))
     {
       quit = true;
+      printf("\n\n");
     }
     else
     {
       if(strToEnum(userInput, E)==0)
       {
-       h.HS_channel_add(E);
+       h.channel_add(E);
+       printf("Channel was added \n\n");
       }
       else
       {
@@ -117,30 +127,57 @@ void channelAdd(headset h)
   }
 }
 
-void channelRemove(headset h)
+//=============================================================
+//                    channelRemove
+//=============================================================
+//Removes a channel specified by teh user from headset h.
+//=============================================================
+
+void channelRemove(headset& h)
 {
+  printf("\n");
   char userInput[40];
   EE_DataChannels_enum E;
-  while(!strcmp(userInput, "done"))
+  bool quit = false;
+  while(!quit)
   {
     printf("Enter Channel Name to Remove or type \"all\" to use remove Channels: ");
     scanf("%s", userInput);
     if (!strcmp(userInput, "all"))
     {
-      //Insert all clear here.
+      
+    }
+    else if (!strcmp(userInput, "quit"))
+    {
+      quit = true;
+      printf("\n \n");
     }
     else
     {
-      strToEnum(userInput, E);
-      h.HS_channel_add(E);
+      if(strToEnum(userInput, E) == 0)
+      {
+        h.channel_remove(E);
+        printf("Channel Removed \n\n");
+      }
+      else
+      {
+        printf("Channel does not exist \n\n");
+      }
     }
   }
+}
+
+void writeCommands()
+{
+  printf("\n\n*****************************************************************************\n\n");
+  printf("\trun_test : Records the data from the specified sensors in the EEGHeadset for a user set amount of time");
+  printf("\n\n*****************************************************************************\n\n");
 }
 
 int main(int argc, char* argv)
 { 
   headset h;
-  FILE* f = fopen("Outputtext.txt", "w");
+  FILE* f = fopen("Outputtext.csv", "w");
   char userInput[40];
   bool quit = false;
   while(!quit)
@@ -162,31 +199,25 @@ int main(int argc, char* argv)
     }      
     else if (!strcmp(userInput, "change_file"))
     {
-    printf("Enter a new file Name: ");
+      printf("Enter a new file Name: ");
       char newFile[40];
       scanf("%s", newFile);
       f = fopen(newFile, "w");
       printf("File Name Set To %s \n\n", newFile);
     }   
-    else if(!strcmp(userInput, "exit"))
+    else if(!strcmp(userInput, "quit"))
     {
       quit = true;
+    }
+    else if(!strcmp(userInput, "command_list"))
+    {
+      writeCommands();
     }
     else
     {
       printf("Unknown Command \n");
     }
   }
+  fclose(f);
 	return 0;
 }
-
-/*int main(int argc, char** argv)
-{
-  headset h;
-  h.HS_channel_add(ED_P7);
-  h.HS_channel_add(ED_P8);
-  int ds = 3;
-  DataHandle hData;
-  h.HS_data_capture(ds, hData);
-  h.HS_data_capture(ds, hData); 
-}*/

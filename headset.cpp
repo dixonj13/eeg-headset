@@ -4,7 +4,7 @@
 #include "channelMap.h"
 #include <cstdio>
 
-#define DEBUG
+//#define DEBUG
 const int CHANNEL_BUFFER_SIZE = 24;
 
 /* The default constructor yeilds a headset that is
@@ -31,7 +31,7 @@ headset::~headset()
   delete[] data_buffer;
 }
 
-/* channel_exists(C) returns true if chanel C is being
+/* channel_exists(C) returns true if channel C is being
 * listened to by the headset.
 */
 bool headset::channel_exists(EE_DataChannels_enum C)
@@ -83,7 +83,7 @@ EE_DataChannels_enum headset::channel_get(int n)
   return channels[n];
 }
 
-/* channel_write(f) writes the list of channels currently
+/* channel_CSV_write(f) writes the list of channels currently
 * being listened to on one line separated by a comma and
 * a space. (CSV Format)
 */
@@ -125,7 +125,7 @@ void headset::data_capture(unsigned int num_samp, DataHandle& hData)
       printf("  allocated new data_buffer slot for [%s]\n", enumToStr(channels[i]));
     #endif
 
-    //EE_DataGet(hData, channels[i], data_buffer[i], num_samples);
+    EE_DataGet(hData, channels[i], data_buffer[i], num_samples);
 
     #ifdef DEBUG
       for(unsigned int j = 0; j < num_samples; j++)
@@ -156,7 +156,7 @@ void headset::data_CSV_write(FILE* f)
   }
 }
 
-int main()
+/*int main()
 {
   FILE* f = fopen("data.txt", "w");
   headset h;
@@ -171,4 +171,4 @@ int main()
   h.data_capture(2, d);
   h.data_CSV_write(f);
   fclose(f);
-}
+}*/

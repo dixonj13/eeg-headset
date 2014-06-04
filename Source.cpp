@@ -7,7 +7,40 @@
 #include <cstring>
 #include "headset.h"
 #include "channelMap.h"
+#include <thread>
 using namespace std;
+
+//==================================================================================================
+//                       date
+//==================================================================================================
+//Returns the current date.
+//==================================================================================================
+
+string date()
+{
+  time_t t = time(0);
+  tm* loc_t = NULL;
+  loc_t = localtime(&t);
+
+  string s = to_string(loc_t->tm_mon) + "_" + to_string(loc_t->tm_mday) + "_" + to_string(loc_t->tm_year + 1900) +
+            "_" + to_string(loc_t->tm_hour) + "_" + to_string(loc_t->tm_min) + "_" + to_string(loc_t->tm_sec) + ".csv";
+
+  return s;
+}
+
+//========================================================================
+//                    userListen
+//========================================================================
+//Listens for user input
+//========================================================================
+
+void userListen(bool& stopLoop)
+{
+  printf("Enter any character to stop: ");
+  char userInput[40];
+  scanf("%s", userInput);
+  stopLoop = true;
+}
 
 
 //==================================================================================================
@@ -17,17 +50,39 @@ using namespace std;
 //data is retrieved is specified by the user in seconds.
 //==================================================================================================
 
-void eegResponseTest(FILE* f, headset& h)
+void eegResponseTest(headset& h)
 {
 	float sec = 1;
-	int counter = 0, currentState;
-	unsigned int userID = 0;
-	bool collectionStatus = false;
+	int currentState;
+	unsigned int userID = 0, runTime = -1;
+	bool collectionStatus = false, threading = false, stopLoop = false;
+  char c = 0;
+
+  string currentDate = date();
+  char* filename = &currentDate[0];
+  FILE* f = fopen( filename,  "w");
 
 	printf("The current buffer size is %.3f \n\n", sec);
-	printf("Enter time for program to run (Seconds): ");
-	unsigned int runTime;
-	scanf("%i", &runTime);
+
+  printf("To enable the timer, type \"time\", else enter \"noTime\" : ");
+  char userInput[40];
+  scanf("%s", userInput);
+
+  if (!strcmp(userInput, "time"))
+  {
+    printf("Enter time for program to run (Seconds): ");
+    scanf("%i", &runTime);
+  }
+  else
+  {
+     threading = true;
+  }
+
+  if(threading == true)
+  {
+   thread t1(userListen, std::ref(stopLoop));
+   t1.detach();
+  }
 
   EE_EngineConnect();
 	EE_DataSetBufferSizeInSec(sec);
@@ -41,7 +96,7 @@ void eegResponseTest(FILE* f, headset& h)
 
   h.channel_CSV_write(f);
 
-	while(t.time_spent() <= runTime)
+	while(t.time_spent() <= runTime && !stopLoop)
 	{
 		currentState = EE_EngineGetNextEvent(eEvent);
 		EE_Event_t eventType = EE_EmoEngineEventGetType(eEvent);
@@ -67,8 +122,9 @@ void eegResponseTest(FILE* f, headset& h)
         h.data_CSV_write(f);
 			}
 		}
-	counter = counter +1;
 	}
+   printf("Data Recording Complete \n");
+   fclose(f);
 }
 
 //================================================================
@@ -110,7 +166,7 @@ void channelAdd(headset& h)
     else if(!strcmp(userInput, "quit"))
     {
       quit = true;
-      printf("\n\n");
+      printf("\n");
     }
     else
     {
@@ -167,27 +223,19 @@ void channelRemove(headset& h)
   }
 }
 
-void writeCommands()
-{
-  printf("\n\n*****************************************************************************\n\n");
-  printf("\trun_test : Records the data from the specified sensors in the EEGHeadset for a user set amount of time");
-  printf("\n\n*****************************************************************************\n\n");
-}
-
 int main(int argc, char* argv)
 { 
   headset h;
-  FILE* f = fopen("Outputtext.csv", "w");
   char userInput[40];
   bool quit = false;
   while(!quit)
   {
-    printf("Enter Command: ");
+    printf("\nEnter Command: ");
     scanf("%s", userInput);
     if(!strcmp(userInput, "run_test"))
     {
     printf("Starting Test \n\n");
-      eegResponseTest(f, h);
+      eegResponseTest(h);
     }
     else if(!strcmp(userInput, "add_channels"))
     {
@@ -196,28 +244,15 @@ int main(int argc, char* argv)
     else if(!strcmp(userInput, "remove_channels"))
     {
         channelRemove(h);
-    }      
-    else if (!strcmp(userInput, "change_file"))
-    {
-      printf("Enter a new file Name: ");
-      char newFile[40];
-      scanf("%s", newFile);
-      f = fopen(newFile, "w");
-      printf("File Name Set To %s \n\n", newFile);
-    }   
+    }        
     else if(!strcmp(userInput, "quit"))
     {
       quit = true;
-    }
-    else if(!strcmp(userInput, "command_list"))
-    {
-      writeCommands();
     }
     else
     {
       printf("Unknown Command \n");
     }
   }
-  fclose(f);
 	return 0;
 }

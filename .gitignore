@@ -4,3 +4,8 @@ DEBUG/
 sensor.*
 *.txt
 *.csv
+.metadata/
+FFTTest/
+FFTTesting/
+RemoteSystemsTempFiles/
+databuffers/

@@ -14,7 +14,9 @@ headset::headset()
 {
   channels.push_back(ED_TIMESTAMP);
   num_channels = 1;
+  current_index = 0;
   data_buffer = new double*[CHANNEL_BUFFER_SIZE];
+  num_samples = 0;
   for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
   {
     data_buffer[i] = NULL;
@@ -29,6 +31,31 @@ headset::~headset()
     delete[] data_buffer[i];
   }
   delete[] data_buffer;
+}
+
+int headset :: get_num_samples()
+{
+	return num_samples;
+}
+
+int headset :: get_num_channels()
+{
+	return num_channels;
+}
+
+int headset :: get_buffer_data(int y, int i)
+{
+	return data_buffer[y][i];
+}
+
+int headset :: get_current_index()
+{
+	return current_index;
+}
+
+void headset :: set_current_index(int i)
+{
+	current_index = i;
 }
 
 /* channel_exists(C) returns true if channel C is being
@@ -125,7 +152,7 @@ void headset::data_capture(unsigned int num_samp, DataHandle& hData)
       printf("  allocated new data_buffer slot for [%s]\n", enumToStr(channels[i]));
     #endif
 
-    EE_DataGet(hData, channels[i], data_buffer[i], num_samples);
+    //EE_DataGet(hData, channels[i], data_buffer[i], num_samples);
 
     #ifdef DEBUG
       for(unsigned int j = 0; j < num_samples; j++)
@@ -154,6 +181,11 @@ void headset::data_CSV_write(FILE* f)
     }
     fprintf(f, "\n");
   }
+}
+
+void headset :: set_num_channels(int i)
+{
+	num_channels = i;
 }
 
 /*int main()

@@ -14,6 +14,7 @@ class headset
   int num_channels;
   double** data_buffer;
   unsigned int num_samples;
+  int current_index;
 
   public:
 
@@ -66,6 +67,21 @@ class headset
      * one line separated by a comma and a space.
      */
     void data_CSV_write(FILE* f);
+
+    int get_num_samples();
+
+    int get_num_channels();
+
+    int get_buffer_data(int y, int i);
+
+    int get_current_index();
+
+    void set_current_index(int i);
+
+    void manual_data_entry();
+
+    void set_num_channels(int i);
+
 };
 
 #endif

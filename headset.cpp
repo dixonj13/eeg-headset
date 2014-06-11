@@ -1,3 +1,9 @@
+/*
+ * headset.cpp
+ *
+ *  Created on: Jun 10, 2014
+ *      Author: Chris
+ */
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "headset.h"
@@ -43,7 +49,7 @@ int headset :: get_num_channels()
 	return num_channels;
 }
 
-int headset :: get_buffer_data(int y, int i)
+double headset :: get_buffer_data(int y, int i)
 {
 	return data_buffer[y][i];
 }
@@ -136,23 +142,23 @@ void headset::data_capture(unsigned int num_samp, DataHandle& hData)
   for (int i = 0; i < num_channels; i++)
   {
     #ifdef DEBUG
-      printf("loop initiated :: data_buffer[%i] :: null ? %s\n", i, (data_buffer[i] == NULL)?"true":"false"); 
+      printf("loop initiated :: data_buffer[%i] :: null ? %s\n", i, (data_buffer[i] == NULL)?"true":"false");
     #endif
     if (data_buffer[i] != NULL)
     {
-      #ifdef DEBUG 
+      #ifdef DEBUG
         printf("  attempting delete on data_buffer[%i]\n", i);
-      #endif 
+      #endif
       delete[] data_buffer[i];
       data_buffer[i] = NULL;
     }
 
     data_buffer[i] = new double[num_samples];
-    #ifdef DEBUG 
+    #ifdef DEBUG
       printf("  allocated new data_buffer slot for [%s]\n", enumToStr(channels[i]));
     #endif
 
-    //EE_DataGet(hData, channels[i], data_buffer[i], num_samples);
+    EE_DataGet(hData, channels[i], data_buffer[i], num_samples);
 
     #ifdef DEBUG
       for(unsigned int j = 0; j < num_samples; j++)
@@ -183,6 +189,21 @@ void headset::data_CSV_write(FILE* f)
   }
 }
 
+void headset :: manual_data_entry()
+{
+	num_samples = 2;
+	double data;
+	for( int i = 0; i<num_channels; i++)
+	{
+		for(unsigned int y = 0; y<num_samples; y++)
+		{
+			printf("Enter Data for[%i][%i]: \n", i, y);
+			scanf("%lf", &data);
+			data_buffer[i][y] = data;
+		}
+	}
+}
+
 void headset :: set_num_channels(int i)
 {
 	num_channels = i;
@@ -204,3 +225,7 @@ void headset :: set_num_channels(int i)
   h.data_CSV_write(f);
   fclose(f);
 }*/
+
+
+
+

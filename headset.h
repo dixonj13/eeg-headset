@@ -1,3 +1,13 @@
+/*
+ * headset.h
+ *
+ *  Created on: Jun 10, 2014
+ *      Author: Chris
+ */
+
+#ifndef HEADSET_H_
+#define HEADSET_H_
+
 #ifndef HEADSET_H
 #define HEADSET_H
 
@@ -24,14 +34,14 @@ class headset
     headset();
     ~headset();
 
-    /* channel_exists(C) returns true if chanel C is being 
+    /* channel_exists(C) returns true if chanel C is being
      * listened to by the headset.
      */
     bool channel_exists(EE_DataChannels_enum C);
 
-    /* channel_add(C) attempts to add channel C to the list 
-     * of channels. If C is succesfully added, 0 is returned. 
-     * If C is already being listened to or the list of 
+    /* channel_add(C) attempts to add channel C to the list
+     * of channels. If C is succesfully added, 0 is returned.
+     * If C is already being listened to or the list of
      * channels is full -1 is returned.
      */
     int channel_add(EE_DataChannels_enum C);
@@ -72,16 +82,16 @@ class headset
 
     int get_num_channels();
 
-    int get_buffer_data(int y, int i);
+    double get_buffer_data(int y, int i);
 
     int get_current_index();
 
     void set_current_index(int i);
 
-    void manual_data_entry();
-
-    void set_num_channels(int i);
-
 };
 
 #endif
+
+
+
+#endif /* HEADSET_H_ */

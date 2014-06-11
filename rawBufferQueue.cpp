@@ -31,7 +31,7 @@ bool isEmpty(const raw_buffer_queue& RBQ)
 //Adds raw_data_buffer buffer to the end of raw_data_buffer_queue RBQ.
 //====================================================================
 
-void add_raw_data_buffer(raw_buffer_queue& RBQ, const raw_data_buffer& buffer)
+void add_raw_data_buffer(raw_buffer_queue& RBQ, QueueItemType QIT)
 {
 	if(isEmpty(RBQ))
 	{

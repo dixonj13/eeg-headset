@@ -9,15 +9,18 @@
 #define RAWBUFFERQUEUE_H_
 
 #include <cstdio>
+#include "rawBuffer.h"
+
+typedef RDB QueueItemType;
 
 struct raw_buffer_queue_cell
 {
-	raw_data_buffer R;
+	QueueItemType Item;
 	raw_buffer_queue_cell* next;
 
-	raw_buffer_queue_cell(raw_data_buffer RDB)
+	raw_buffer_queue_cell(QueueItemType Q)
 	{
-		R = RDB;
+		Item = Q;
 		next = NULL;
 	}
 };
@@ -38,7 +41,7 @@ struct raw_buffer_queue
 //Adds raw_data_buffer buffer to the end of raw_data_buffer_queue RBQ.
 //====================================================================
 
-void add_raw_data_buffer(raw_buffer_queue& RBQ, const raw_data_buffer& buffer);
+void add_raw_data_buffer(raw_buffer_queue& RBQ, QueueItemType QIT);
 
 //====================================================================
 //							remove_raw_data_buffer
@@ -48,7 +51,7 @@ void add_raw_data_buffer(raw_buffer_queue& RBQ, const raw_data_buffer& buffer);
 //is empty.
 //====================================================================
 
-int remove_raw_data_buffer(raw_buffer_queue& RBQ, raw_data_buffer& buffer);
+int remove_raw_data_buffer(raw_buffer_queue& RBQ, QueueItemType QIT);
 
 //====================================================================
 //							isEmpty

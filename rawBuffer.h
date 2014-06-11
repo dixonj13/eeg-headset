@@ -8,8 +8,8 @@
 #ifndef RAWBUFFER_H_
 #define RAWBUFFER_H_
 
-#include "headset.h"
 #include <cstdio>
+#include "headset.h"
 using namespace std;
 
 const int FFT_SIZE = 16;
@@ -22,12 +22,12 @@ struct raw_data_buffer
 	int dataUsed;
 	double** channel_data_buffer;
 
-	raw_data_buffer()
+	raw_data_buffer(headset& h)
 	{
 		FFTSize = FFT_SIZE;
-		numChannels = 1;
+		numChannels = h.get_num_channels();
 		dataUsed = 0;
-		channel_data_buffer = new double[DEFAULT_CHANNEL_SIZE];
+		channel_data_buffer = new double*[DEFAULT_CHANNEL_SIZE];
 
 		for(int i = 1; i < DEFAULT_CHANNEL_SIZE; i++)
 		{
@@ -36,11 +36,8 @@ struct raw_data_buffer
 	}
 };
 
-void add_headset_to_buffer(headset& h, raw_data_buffer& R, raw_data_buffer& RBQ);
+typedef raw_data_buffer* RDB;
 
 bool isFull(const raw_data_buffer& buffer);
-
-void write_data_buffer_to_file(FILE* f);
-
 
 #endif /* RAWBUFFER_H_ */

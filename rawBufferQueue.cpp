@@ -13,9 +13,9 @@
 //Returns true if raw_buffer_queue RBQ is empty, and false if it is not.
 //====================================================================
 
-bool isEmpty(const raw_buffer_queue& RBQ)
+bool isEmpty(RawBQ RBQ)
 {
-	if (RBQ.queue == NULL)
+	if (RBQ->queue == NULL)
 	{
 		return true;
 	}
@@ -31,20 +31,20 @@ bool isEmpty(const raw_buffer_queue& RBQ)
 //Adds raw_data_buffer buffer to the end of raw_data_buffer_queue RBQ.
 //====================================================================
 
-void add_raw_data_buffer(raw_buffer_queue& RBQ, QueueItemType QIT)
+void add_raw_data_buffer(RawBQ RBQ, QueueItemType& QIT)
 {
 	if(isEmpty(RBQ))
 	{
-		RBQ.queue = new raw_buffer_queue_cell(buffer);
+		RBQ->queue = new raw_buffer_queue_cell(QIT);
 	}
 	else
 	{
-		raw_buffer_queue_cell* P = RBQ.queue;
+		raw_buffer_queue_cell* P = RBQ->queue;
 		while(P->next!= NULL)
 		{
 			P = P->next;
 		}
-		P->next = new raw_buffer_queue_cell(buffer);
+		P->next = new raw_buffer_queue_cell(QIT);
 	}
 }
 
@@ -56,7 +56,7 @@ void add_raw_data_buffer(raw_buffer_queue& RBQ, QueueItemType QIT)
 //is empty.
 //====================================================================
 
-int remove_raw_data_buffer(raw_buffer_queue& RBQ, raw_data_buffer& buffer)
+int remove_raw_data_buffer(RawBQ RBQ, QueueItemType& QIT)
 {
 	if(isEmpty(RBQ))
 	{
@@ -64,9 +64,9 @@ int remove_raw_data_buffer(raw_buffer_queue& RBQ, raw_data_buffer& buffer)
 	}
 	else
 	{
-		buffer = RBQ.queue->R;
-		raw_buffer_queue_cell* P = RBQ.queue;
-		RBQ.queue  = RBQ.queue->next;
+		QIT = RBQ->queue->Item;
+		raw_buffer_queue_cell* P = RBQ->queue;
+		RBQ->queue  = RBQ->queue->next;
 		delete P;
 		return 0;
 	}

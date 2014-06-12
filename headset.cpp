@@ -9,6 +9,7 @@
 #include "headset.h"
 #include "channelMap.h"
 #include <cstdio>
+#include <vector>
 
 //#define DEBUG
 const int CHANNEL_BUFFER_SIZE = 24;
@@ -187,26 +188,6 @@ void headset::data_CSV_write(FILE* f)
     }
     fprintf(f, "\n");
   }
-}
-
-void headset :: manual_data_entry()
-{
-	num_samples = 2;
-	double data;
-	for( int i = 0; i<num_channels; i++)
-	{
-		for(unsigned int y = 0; y<num_samples; y++)
-		{
-			printf("Enter Data for[%i][%i]: \n", i, y);
-			scanf("%lf", &data);
-			data_buffer[i][y] = data;
-		}
-	}
-}
-
-void headset :: set_num_channels(int i)
-{
-	num_channels = i;
 }
 
 /*int main()

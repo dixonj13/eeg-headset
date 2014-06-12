@@ -35,23 +35,25 @@ struct raw_buffer_queue
 	}
 };
 
+typedef raw_buffer_queue* RawBQ;
+
 //====================================================================
 //							add_raw_data_buffer
 //====================================================================
-//Adds raw_data_buffer buffer to the end of raw_data_buffer_queue RBQ.
+//Adds QueueItemType QIT to the end of RawBQ RBQ.
 //====================================================================
 
-void add_raw_data_buffer(raw_buffer_queue& RBQ, QueueItemType QIT);
+void add_raw_data_buffer(RawBQ RBQ, QueueItemType QIT);
 
 //====================================================================
 //							remove_raw_data_buffer
 //====================================================================
-//Removes the first raw_data_buffer from raw_buffer_queue and stores it
-//into buffer. Returns 0 if successful, and returns -1 if RBQ
+//Removes the first QueueItemType from RBQ and stores it
+//into QIT. Returns 0 if successful, and returns -1 if RBQ
 //is empty.
 //====================================================================
 
-int remove_raw_data_buffer(raw_buffer_queue& RBQ, QueueItemType QIT);
+int remove_raw_data_buffer(RawBQ RBQ, QueueItemType QIT);
 
 //====================================================================
 //							isEmpty
@@ -59,7 +61,7 @@ int remove_raw_data_buffer(raw_buffer_queue& RBQ, QueueItemType QIT);
 //Returns true if raw_buffer_queue RBQ is empty, and false if it is not.
 //====================================================================
 
-bool isEmpty(const raw_buffer_queue& RBQ);
+bool isEmpty(RawBQ RBQ);
 
 
 #endif /* RAWBUFFERQUEUE_H_ */

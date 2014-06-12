@@ -91,13 +91,13 @@ int main()
 
 	X = (double *) malloc((2*NFFT+1) * sizeof(double));
 
-	for(i = 0; i < Nx; i++)			//Stores the values from x into X. Each Value is followed by 0.00.
+	for(i = 0; i < Nx; i++)
 	{
 		X[2*i+1] = x[i];
 		X[2*i+2] = 0.0;
 	}
 
-	for(i = Nx; i < NFFT; i++)		//Pads X if the sample size is not a power of 2.
+	for(i = Nx; i < NFFT; i++)
 	{
 		X[2*i+1] = 0.0;
 		X[2*i+2] = 0.0;

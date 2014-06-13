@@ -79,7 +79,7 @@
    a new variable called current_index that has get and set functions.
    I assume this variable was created to keep track of how much data
    has been written into the raw_data_buffer. But I think that variable
-   is unnecessary. A variable local to the function that lets the
+   is necessary. A variable local to the function that lets the
    raw_data_buffer aquire data from the headset can pull initially
    pull the num_samples from the headset. Then that variable can be
    decremented inside of the local function. 

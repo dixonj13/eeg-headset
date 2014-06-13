@@ -66,4 +66,4 @@ bool isFull(RDB buffer);
 
 void file_write_raw_data_buffer(FILE* f, RDB buffer);
 
-#endif /* RAWBUFFER_H_ */
+#endif RAWBUFFER_H_

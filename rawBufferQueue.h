@@ -64,4 +64,4 @@ int remove_raw_data_buffer(RawBQ RBQ, QueueItemType QIT);
 bool isEmpty(RawBQ RBQ);
 
 
-#endif /* RAWBUFFERQUEUE_H_ */
+#endif RAWBUFFERQUEUE_H_

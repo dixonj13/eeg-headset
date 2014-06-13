@@ -40,27 +40,27 @@ headset::~headset()
   delete[] data_buffer;
 }
 
-int headset :: get_num_samples()
+int headset::get_num_samples()
 {
 	return num_samples;
 }
 
-int headset :: get_num_channels()
+int headset::get_num_channels()
 {
 	return num_channels;
 }
 
-double headset :: get_buffer_data(int y, int i)
+double headset::get_buffer_data(int y, int i)
 {
 	return data_buffer[y][i];
 }
 
-int headset :: get_current_index()
+int headset::get_current_index()
 {
 	return current_index;
 }
 
-void headset :: set_current_index(int i)
+void headset::set_current_index(int i)
 {
 	current_index = i;
 }

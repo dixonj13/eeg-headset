@@ -2,6 +2,8 @@
 // Name        : rawBuffer.cpp
 // Author      : 
 // Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
 //============================================================================
 
 #include "rawBuffer.h"
@@ -15,9 +17,9 @@ using namespace std;
 //buffer is full; and false if it is not.
 //=======================================================
 
-bool isFull(RDB buffer)
+bool isFull(rawBuffer buffer)
 {
-	if (buffer->dataUsed == buffer->FFTSize )
+	if (buffer->dataUsed==buffer->FFTSize )
 	{
 		return true;
 	}
@@ -32,7 +34,7 @@ bool isFull(RDB buffer)
 //is written in a column in CSV format.
 //=====================================================
 
-void file_write_raw_data_buffer(FILE* f, RDB buffer)
+void file_write_raw_data_buffer(FILE* f, rawBuffer buffer)
 {
 	for(int i = 0; i < buffer->FFTSize; i++)
 	{

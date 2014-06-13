@@ -13,7 +13,7 @@
 //Returns true if raw_buffer_queue RBQ is empty, and false if it is not.
 //====================================================================
 
-bool isEmpty(RawBQ RBQ)
+bool isEmpty(rawQueue RBQ)
 {
 	if (RBQ->queue == NULL)
 	{
@@ -31,7 +31,7 @@ bool isEmpty(RawBQ RBQ)
 //Adds raw_data_buffer buffer to the end of raw_data_buffer_queue RBQ.
 //====================================================================
 
-void add_raw_data_buffer(RawBQ RBQ, QueueItemType& QIT)
+void add_raw_data_buffer(rawQueue RBQ, QueueItemType& QIT)
 {
 	if(isEmpty(RBQ))
 	{
@@ -56,7 +56,7 @@ void add_raw_data_buffer(RawBQ RBQ, QueueItemType& QIT)
 //is empty.
 //====================================================================
 
-int remove_raw_data_buffer(RawBQ RBQ, QueueItemType& QIT)
+int remove_raw_data_buffer(rawQueue RBQ, QueueItemType& QIT)
 {
 	if(isEmpty(RBQ))
 	{

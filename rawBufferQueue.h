@@ -11,7 +11,7 @@
 #include <cstdio>
 #include "rawBuffer.h"
 
-typedef RDB QueueItemType;
+typedef rawBuffer QueueItemType;
 
 struct raw_buffer_queue_cell
 {
@@ -35,7 +35,7 @@ struct raw_buffer_queue
 	}
 };
 
-typedef raw_buffer_queue* RawBQ;
+typedef raw_buffer_queue* rawQueue;
 
 //====================================================================
 //							add_raw_data_buffer
@@ -43,7 +43,7 @@ typedef raw_buffer_queue* RawBQ;
 //Adds QueueItemType QIT to the end of RawBQ RBQ.
 //====================================================================
 
-void add_raw_data_buffer(RawBQ RBQ, QueueItemType QIT);
+void add_raw_data_buffer(rawQueue RBQ, QueueItemType QIT);
 
 //====================================================================
 //							remove_raw_data_buffer
@@ -53,7 +53,7 @@ void add_raw_data_buffer(RawBQ RBQ, QueueItemType QIT);
 //is empty.
 //====================================================================
 
-int remove_raw_data_buffer(RawBQ RBQ, QueueItemType QIT);
+int remove_raw_data_buffer(rawQueue RBQ, QueueItemType QIT);
 
 //====================================================================
 //							isEmpty
@@ -61,7 +61,7 @@ int remove_raw_data_buffer(RawBQ RBQ, QueueItemType QIT);
 //Returns true if raw_buffer_queue RBQ is empty, and false if it is not.
 //====================================================================
 
-bool isEmpty(RawBQ RBQ);
+bool isEmpty(rawQueue RBQ);
 
 
-#endif RAWBUFFERQUEUE_H_
+#endif /* RAWBUFFERQUEUE_H_ */

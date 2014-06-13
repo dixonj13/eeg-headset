@@ -15,7 +15,7 @@ using namespace std;
 const int SIZE_OF_FFT = 16;
 const int FOURIER_TYPE = 1;
 
-void fillBuffer(headset h, RDB Data, RawBQ RBQ)
+void fillBuffer(headset h, rawBuffer Data, rawQueue RBQ)
 {
 	int numberSamples = h.get_num_samples();
 	int numberChannels = h.get_num_channels();
@@ -28,8 +28,7 @@ void fillBuffer(headset h, RDB Data, RawBQ RBQ)
 			if(isFull(Data))
 			{
 				add_raw_data_buffer(RBQ, Data);
-				//Deallocate Data
-				Data = new raw_data_buffer(h);
+				Data = new raw_data_buffer(h, SIZE_OF_FFT);
 			}
 			Data->dataUsed++;
 		}
@@ -37,7 +36,7 @@ void fillBuffer(headset h, RDB Data, RawBQ RBQ)
 	}
 }
 
-void write_fft_buffer(int NFFT, RDB Data, FILE* F)
+void write_fft_buffer(int NFFT, rawBuffer Data, FILE* F)
 {
 	for(int i = 0; i < NFFT; i++)
 	{
@@ -49,7 +48,7 @@ void write_fft_buffer(int NFFT, RDB Data, FILE* F)
 	}
 }
 
-void processRawData(RawBQ RBQ, headset h)
+void processRawData(rawQueue RBQ, headset h)
 {
 	FILE* F = fopen("textFile.txt", "w");
 	FILE* C = fopen("CSVFile.csv", "w");
@@ -57,7 +56,7 @@ void processRawData(RawBQ RBQ, headset h)
 	h.channel_CSV_write(F);
 	h.channel_CSV_write(C);
 
-	RDB rawData = NULL;
+	rawBuffer rawData = NULL;
 	int Nx = SIZE_OF_FFT;
 	int NFFT = NFFTPowerTwoSamples(Nx);
 	double* imagineArray;

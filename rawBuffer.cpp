@@ -2,8 +2,6 @@
 // Name        : rawBuffer.cpp
 // Author      : 
 // Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
 //============================================================================
 
 #include "rawBuffer.h"
@@ -19,7 +17,7 @@ using namespace std;
 
 bool isFull(RDB buffer)
 {
-	if (buffer->dataUsed==buffer->FFTSize )
+	if (buffer->dataUsed == buffer->FFTSize )
 	{
 		return true;
 	}

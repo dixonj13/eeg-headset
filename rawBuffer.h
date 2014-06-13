@@ -26,8 +26,11 @@
    the data coming into headset. The way I view the process taking place
    is something like: 
 
-   Thread 1 is collecting data through a loop and Thread 2 is waiting
-   to be called on by Thread 1. Pseudocode might look something like:
+   Thread 1 is collecting data through a loop and adding it to the queue
+   when the buffer fills up. Thread 2 is running through a loop that 
+   tries to process info from the queue.
+
+   Pseudocode might look something like:
 
    Thread 1
    {

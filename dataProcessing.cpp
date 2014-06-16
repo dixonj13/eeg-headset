@@ -48,7 +48,7 @@ void write_fft_buffer(int NFFT, rawBuffer Data, FILE* F)
 	}
 }
 
-void processRawData(rawQueue Queue, headset h, bool stop)
+void processRawData(rawQueue Queue, headset h, bool stopLoop)
 {
 	FILE* F = fopen("textFile.txt", "w");
 	FILE* C = fopen("CSVFile.csv", "w");
@@ -61,7 +61,7 @@ void processRawData(rawQueue Queue, headset h, bool stop)
 	int NFFT = NFFTPowerTwoSamples(Nx);
 	double* imagineArray;
 
-	while(!stop) /*Time has not stopped, button is not pressed*/
+	while(!stopLoop) /*Time has not stopped, button is not pressed*/
 	{
 		if(!isEmpty(Queue))
 		{
@@ -86,13 +86,10 @@ void processRawData(rawQueue Queue, headset h, bool stop)
 			//Delete rawData Here
 		}
 	}
+
 	fclose(F);
 	fclose(C);
 }
 
-int main(int argc, char** argv)
-{
-	return 0;
-}
 
 

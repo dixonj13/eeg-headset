@@ -21,7 +21,6 @@ headset::headset()
 {
   channels.push_back(ED_TIMESTAMP);
   num_channels = 1;
-  current_index = 0;
   data_buffer = new double*[CHANNEL_BUFFER_SIZE];
   num_samples = 0;
   for (int i = 0; i < CHANNEL_BUFFER_SIZE; i++)
@@ -53,16 +52,6 @@ int headset::get_num_channels()
 double headset::get_buffer_data(int y, int i)
 {
 	return data_buffer[y][i];
-}
-
-int headset::get_current_index()
-{
-	return current_index;
-}
-
-void headset::set_current_index(int i)
-{
-	current_index = i;
 }
 
 /* channel_exists(C) returns true if channel C is being

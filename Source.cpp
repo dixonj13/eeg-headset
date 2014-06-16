@@ -7,35 +7,59 @@
 #include <cstring>
 #include "headset.h"
 #include "channelMap.h"
-#include "rawbuffer.h"
+#include "rawBuffer.h"
+#include "rawBufferQueue.h"
 #include "FFTs.h"
 #include <thread>
 using namespace std;
 
-const int FFT_SIZE = 16;
+//#define DEBUG
 
-void fillBuffer(headset h, rawBuffer Data, rawQueue Queue)
+const int FFT_SIZE = 16;
+const int FOURIER_TYPE = 1;
+
+void write_fft_buffer(int NFFT, rawBuffer Data, FILE* F)
+{
+	for(int i = 0; i < NFFT; i++)
+	{
+		for (int y = 0; y < Data->numChannels; y++)
+		{
+			fprintf(F, "%lf, ", Data->channel_data_buffer[y][i]);
+		}
+		fprintf(F, "\n");
+	}
+}
+
+void fillBuffer(headset& h, rawBuffer& Data, rawQueue Queue)
 {
 	int numberSamples = h.get_num_samples();
 	int numberChannels = h.get_num_channels();
 
-	for(int i = h.get_current_index(); i < numberSamples; i++)
+#ifdef DEBUG
+	printf("Starting fillBuffer \n");
+#endif
+	for(int i = 0; i < numberSamples; i++)
 	{
 		for(int y = 0; y < numberChannels; y++)
 		{
-			Data->channel_data_buffer[y][Data->dataUsed] = h.get_buffer_data(y,i);
+			printf("Data Used: %i\n", Data->dataUsed);
 			if(isFull(Data))
 			{
+				printf("Data is full\n");
 				add_raw_data_buffer(Queue, Data);
-				Data = new raw_data_buffer(h, SIZE_OF_FFT);
+				Data = new raw_data_buffer(h.get_num_channels(), FFT_SIZE);
 			}
-			Data->dataUsed++;
+			printf("inserting data from [%i][%i] to [%i][%i],getting value %lf. \n", y, i, y, Data->dataUsed, h.get_buffer_data(y,i));
+			Data->channel_data_buffer[y][Data->dataUsed] = h.get_buffer_data(y,i);
+			incrementDataUsed(Data);
 		}
-		h.set_current_index(i);
 	}
+#ifdef DEBUG
+	printf("Finishing fillBuffer \n");  
+#endif
 }
 
-void processRawData(rawQueue Queue, headset h, bool stop)
+void processRawData(rawQueue Queue, headset& h, bool stopLoop)
 {
 	FILE* F = fopen("textFile.txt", "w");
 	FILE* C = fopen("CSVFile.csv", "w");
@@ -44,11 +68,14 @@ void processRawData(rawQueue Queue, headset h, bool stop)
 	h.channel_CSV_write(C);
 
 	rawBuffer rawData = NULL;
-	int Nx = SIZE_OF_FFT;
+	int Nx = FFT_SIZE;
 	int NFFT = NFFTPowerTwoSamples(Nx);
 	double* imagineArray;
 
-	while(!stop) /*Time has not stopped, button is not pressed*/
+#ifdef DEBUG
+	printf("starting processing \n");
+#endif
+	while(!stopLoop) /*Time has not stopped, button is not pressed*/
 	{
 		if(!isEmpty(Queue))
 		{
@@ -71,8 +98,17 @@ void processRawData(rawQueue Queue, headset h, bool stop)
 			write_fft_buffer(NFFT, rawData, F);
 
 			//Delete rawData Here
+			delete [] imagineArray;
+			delete rawData;
+		}
+		else
+		{
+			//printf("Queue is empty\n");
 		}
 	}
+#ifdef DEBUG
+	printf("Finished Processing");
+#endif
 	fclose(F);
 	fclose(C);
 }
@@ -107,6 +143,7 @@ void userListen(bool& stopLoop)
   char userInput[40];
   scanf("%s", userInput);
   stopLoop = true;
+  printf("stopLoop set to true\n");
 }
 
 
@@ -125,11 +162,7 @@ void eegResponseTest(headset& h)
 	bool collectionStatus = false, stopLoop = false;
 	char c = 0;
 	rawQueue bufferQueue = new raw_buffer_queue;
-	rawBuffer buffer = new raw_data_buffer(h, FFT_SIZE);
-
-  string currentDate = date();
-  char* filename = &currentDate[0];
-  FILE* f = fopen( filename,  "w");
+	rawBuffer buffer = new raw_data_buffer(h.get_num_channels(), FFT_SIZE);
 
   printf("The current buffer size is %.3f \n\n", sec);
 
@@ -144,13 +177,15 @@ void eegResponseTest(headset& h)
   }
 
   //Starting user input listening thread
-  std::thread t1(userListen(), std::ref(stopLoop));
+  std::thread t1(userListen, std::ref(stopLoop));
   t1.detach();
 
   //Starting data processing thread
-  std::thread t2(processRawData(), std::ref(bufferQueue), std::ref(h), std::ref(stopLoop));
-  t2.join();
+  //std::thread t2(processRawData, std::ref(bufferQueue), std::ref(h), std::ref(stopLoop));
 
+#ifdef DEBUG
+  printf("Threads created sucessfully\n");
+#endif
 
   EE_EngineConnect();
 	EE_DataSetBufferSizeInSec(sec);
@@ -158,11 +193,13 @@ void eegResponseTest(headset& h)
 	EmoStateHandle eState = EE_EmoStateCreate();
 	DataHandle hData = EE_DataCreate();
 
+#ifdef DEBUG
+	printf("Connected to EmoEngine\n");
+#endif
+
 	timer t;
 	t.time_start();
 	unsigned int dataTime;
-
-  h.channel_CSV_write(f);
 
 	while(!stopLoop)
 	{
@@ -176,9 +213,11 @@ void eegResponseTest(headset& h)
 			EE_DataAcquisitionEnable(userID, true);
 			collectionStatus = true;
 		}
-
 		if(collectionStatus)
 		{
+#ifdef DEBUG
+			printf("Getting Data \n");
+#endif
 			dataTime = t.time_spent();
 			EE_DataUpdateHandle (0, hData);
 			unsigned int numSamples = 0;
@@ -186,15 +225,17 @@ void eegResponseTest(headset& h)
 
 			if(numSamples!=0)
 			{
-        h.data_capture(numSamples, hData);
-        fillBuffer(h, buffer, bufferQueue);
+				h.data_capture(numSamples, hData);
+
+				#ifdef DEBUG
+				printf("filling buffer\n");
+				#endif
+
+				 fillBuffer(h, buffer, bufferQueue);
 			}
 		}
-		if(t.time_spent() <= runTime)
-		{
-			stopLoop = true;
-		}
 	}
+	//t2.join();
    printf("Data Recording Complete \n");
    delete buffer;
    delete bufferQueue;

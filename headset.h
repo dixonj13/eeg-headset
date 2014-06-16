@@ -24,7 +24,6 @@ class headset
   int num_channels;
   double** data_buffer;
   unsigned int num_samples;
-  int current_index;
 
   public:
 

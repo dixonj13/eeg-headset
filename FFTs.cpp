@@ -4,7 +4,9 @@
  *  Created on: Jun 12, 2014
  *      Author: Chris
  */
+#define _USE_MATH_DEFINES
 
+#include <cstdio>
 #include <cmath>
 #include <cstdlib>
 #include "FFTs.h"

@@ -1,3 +1,4 @@
+
 //============================================================================
 // Name        : rawBuffer.cpp
 // Author      : 
@@ -17,13 +18,19 @@ using namespace std;
 //buffer is full; and false if it is not.
 //=======================================================
 
-bool isFull(rawBuffer buffer)
+bool isFull(rawBuffer& buffer)
 {
 	if (buffer->dataUsed==buffer->FFTSize )
 	{
 		return true;
 	}
 	return false;
+}
+
+void incrementDataUsed(rawBuffer& buffer)
+{
+	buffer->dataUsed++;
+	printf("Incrementing Data Used to: %i\n", buffer->dataUsed);
 }
 
 //=====================================================
@@ -34,7 +41,7 @@ bool isFull(rawBuffer buffer)
 //is written in a column in CSV format.
 //=====================================================
 
-void file_write_raw_data_buffer(FILE* f, rawBuffer buffer)
+void file_write_raw_data_buffer(FILE* f, rawBuffer& buffer)
 {
 	for(int i = 0; i < buffer->FFTSize; i++)
 	{

@@ -60,7 +60,7 @@ bool isFull(rawBuffer& buffer);
 //is written in a column in CSV format.
 //=====================================================
 
-void file_write_raw_data_buffer(FILE* f, rawBuffer& buffer);
+void file_write_raw_data_buffer(FILE* f, rawBuffer buffer);
 
 void incrementDataUsed(rawBuffer& buffer);
 

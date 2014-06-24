@@ -43,7 +43,7 @@ typedef raw_buffer_queue* rawQueue;
 //Adds QueueItemType QIT to the end of RawBQ RBQ.
 //====================================================================
 
-void add_raw_data_buffer(rawQueue RBQ, QueueItemType QIT);
+void add_raw_data_buffer(rawQueue& RBQ, QueueItemType& QIT);
 
 //====================================================================
 //							remove_raw_data_buffer
@@ -53,7 +53,7 @@ void add_raw_data_buffer(rawQueue RBQ, QueueItemType QIT);
 //is empty.
 //====================================================================
 
-int remove_raw_data_buffer(rawQueue RBQ, QueueItemType QIT);
+int remove_raw_data_buffer(rawQueue& RBQ, QueueItemType& QIT);
 
 //====================================================================
 //							isEmpty
@@ -61,7 +61,7 @@ int remove_raw_data_buffer(rawQueue RBQ, QueueItemType QIT);
 //Returns true if raw_buffer_queue RBQ is empty, and false if it is not.
 //====================================================================
 
-bool isEmpty(rawQueue RBQ);
+bool isEmpty(rawQueue& RBQ);
 
 
 #endif /* RAWBUFFERQUEUE_H_ */

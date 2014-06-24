@@ -27,12 +27,6 @@ bool isFull(rawBuffer& buffer)
 	return false;
 }
 
-void incrementDataUsed(rawBuffer& buffer)
-{
-	buffer->dataUsed++;
-	printf("Incrementing Data Used to: %i\n", buffer->dataUsed);
-}
-
 //=====================================================
 //					file_write_raw_data_buffer
 //=====================================================
@@ -41,13 +35,13 @@ void incrementDataUsed(rawBuffer& buffer)
 //is written in a column in CSV format.
 //=====================================================
 
-void file_write_raw_data_buffer(FILE* f, rawBuffer& buffer)
+void file_write_raw_data_buffer(FILE* f, rawBuffer buffer)
 {
 	for(int i = 0; i < buffer->FFTSize; i++)
 	{
 		for(int y = 0; y < buffer->numChannels; y++)
 		{
-			fprintf(f, "%lf, ", buffer->channel_data_buffer[y][i]);
+			fprintf(f, "%.4lf, ", buffer->channel_data_buffer[y][i]);
 		}
 		fprintf(f,"\n");
 	}

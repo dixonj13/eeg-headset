@@ -1,2 +1,1 @@
-eeg-headset
-v0.1
+EmotivUserApplication 0.1.1

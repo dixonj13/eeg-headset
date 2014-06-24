@@ -1,346 +1,242 @@
-#define _CRT_SECURE_NO_WARNINGS
+#ifndef UNICODE
+#define UNICODE
+#endif 
 
-#include <cstdio>
-#include "timeUtil.h"
-#include "edk.h"
-#include <fstream>
-#include <cstring>
-#include "headset.h"
+#include <windows.h>
+#include "resource.h"
 #include "channelMap.h"
+#include "FFTs.h"
+#include "headset.h"
 #include "rawBuffer.h"
 #include "rawBufferQueue.h"
-#include "FFTs.h"
-#include <thread>
-using namespace std;
+#include "timeUtil.h"
+#include "edk.h"
 
-#define DEBUG
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-const int FFT_SIZE = 16;
-const int FOURIER_TYPE = 1;
-
-void write_fft_buffer(int NFFT, rawBuffer& Data, FILE* F)
+void createChannelButtons(HWND hwnd)
 {
-	for(int i = 0; i < NFFT; i++)
+	CreateWindow(TEXT("static"), TEXT("Channels: "), WS_VISIBLE | WS_CHILD, 50, 30, 80, 25, hwnd, (HMENU)200, NULL, NULL);
+
+	CreateWindow(TEXT("Button"), TEXT("All"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 50, 80, 25, hwnd, (HMENU)100, NULL, NULL);
+	CheckDlgButton(hwnd, 100, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("AF3"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 70, 80, 25, hwnd, (HMENU)3, NULL, NULL);
+	CheckDlgButton(hwnd, 3, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("F7"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 90, 80, 25, hwnd, (HMENU)4, NULL, NULL);
+	CheckDlgButton(hwnd, 4, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("F3"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 110, 80, 25, hwnd, (HMENU)5, NULL, NULL);
+	CheckDlgButton(hwnd, 5, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("FC5"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 130, 80, 25, hwnd, (HMENU)6, NULL, NULL);
+	CheckDlgButton(hwnd, 6, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("T7"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 150, 80, 25, hwnd, (HMENU)7, NULL, NULL);
+	CheckDlgButton(hwnd, 7, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("P7"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 170, 80, 25, hwnd, (HMENU)8, NULL, NULL);
+	CheckDlgButton(hwnd, 8, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("O1"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 190, 80, 25, hwnd, (HMENU)9, NULL, NULL);
+	CheckDlgButton(hwnd, 9, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("O2"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 210, 80, 25, hwnd, (HMENU)10, NULL, NULL);
+	CheckDlgButton(hwnd, 10, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("P8"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 230, 80, 25, hwnd, (HMENU)11, NULL, NULL);
+	CheckDlgButton(hwnd, 11, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("T8"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 250, 80, 25, hwnd, (HMENU)12, NULL, NULL);
+	CheckDlgButton(hwnd, 12, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("FC6"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 270, 80, 25, hwnd, (HMENU)13, NULL, NULL);
+	CheckDlgButton(hwnd, 13, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("F4"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 290, 80, 25, hwnd, (HMENU)14, NULL, NULL);
+	CheckDlgButton(hwnd, 14, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("F8"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 310, 80, 25, hwnd, (HMENU)15, NULL, NULL);
+	CheckDlgButton(hwnd, 15, BST_CHECKED);
+
+	CreateWindow(TEXT("Button"), TEXT("AF4"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 330, 80, 25, hwnd, (HMENU)16, NULL, NULL);
+	CheckDlgButton(hwnd, 16, BST_CHECKED);
+}
+
+void isChannelChecked(int boxID, HWND hwnd)
+{
+	bool checked = IsDlgButtonChecked(hwnd, boxID);
+	if (checked)
 	{
-		for (int y = 0; y < Data->numChannels; y++)
+		CheckDlgButton(hwnd, boxID, BST_UNCHECKED);
+		//Remove Channel
+		switch (boxID)
 		{
-			fprintf(F, "%lf, ", Data->channel_data_buffer[y][i]);
+			case 115:
+				EnableWindow(GetDlgItem(hwnd, 402), false);
+				break;
+			case 100:
+				for (int i = 3; i <= 16; i++)
+				{
+					CheckDlgButton(hwnd, i, BST_UNCHECKED);
+				}
+			break;
+			default:
+				//channelAdd(h, boxID);
+				break;
 		}
-		fprintf(F, "\n");
+	}
+	else
+	{
+		CheckDlgButton(hwnd, boxID, BST_CHECKED);
+		switch (boxID)
+		{
+			case 115:
+				EnableWindow(GetDlgItem(hwnd, 402), true);
+			break;
+			case 100:
+				for (int i = 3; i <= 16; i++)
+				{
+					CheckDlgButton(hwnd, i, BST_CHECKED);
+				}
+			break;
+			default:
+				//channelRemove(h, boxID);
+				break;
+		}
 	}
 }
 
-void fillBuffer(headset& h, rawBuffer& Data, rawQueue& Queue)
+void createHeadsetStatus(HWND hwnd)
 {
-	int numberSamples = h.get_num_samples();
-	int numberChannels = h.get_num_channels();
+	CreateWindow(TEXT("static"), TEXT("Headset Status: "), WS_VISIBLE | WS_CHILD, 165, 30, 115, 25, hwnd, (HMENU)201, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("STATUS......"), WS_VISIBLE | WS_CHILD, 280, 30, 115, 25, hwnd, (HMENU)202, NULL, NULL);
+}
 
-	for(int i = 0; i < numberSamples; i++)
+void createFileOutput(HWND hwnd)
+{
+	CreateWindow(TEXT("static"), TEXT("File Name:"), WS_VISIBLE | WS_CHILD, 165, 70, 75, 25, hwnd, (HMENU)203, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("File Path:"), WS_VISIBLE | WS_CHILD, 165, 90, 75, 25, hwnd, (HMENU)203, NULL, NULL);
+	CreateWindow(TEXT("Button"), TEXT("Select"), WS_VISIBLE | WS_CHILD, 390, 90, 80, 21, hwnd, (HMENU)510, NULL, NULL);
+}
+
+void createTextBoxes(HINSTANCE hInstance, HWND hwnd)
+{
+	HWND fileName = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 240, 70, 140, 20, hwnd, (HMENU)400, hInstance, 0);
+	HWND filePath = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 240, 90, 140, 20, hwnd, (HMENU)401, hInstance, 0);
+	HWND timeBox = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 330, 142, 60, 20, hwnd, (HMENU)402, hInstance, 0);
+	EnableWindow(GetDlgItem(hwnd, 402), false);
+}
+
+void createRecordStopButton(HWND hwnd)
+{
+	CreateWindow(TEXT("Button"), TEXT("RECORD"), WS_VISIBLE | WS_CHILD, 165, 140, 80, 25, hwnd, (HMENU)500, NULL, NULL);
+	CreateWindow(TEXT("Button"), TEXT("Timed"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 255, 140, 65, 25, hwnd, (HMENU)115, NULL, NULL);
+	CreateWindow(TEXT("Button"), TEXT("STOP"), WS_VISIBLE | WS_CHILD, 165, 240, 80, 25, hwnd, (HMENU)501, NULL, NULL);
+}
+
+void createRunTime(HWND hwnd)
+{
+	CreateWindow(TEXT("static"), TEXT("Recording Time: "), WS_VISIBLE | WS_CHILD, 165, 190, 115, 25, hwnd, (HMENU)210, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("TIME"), WS_VISIBLE | WS_CHILD, 285, 190, 60, 25, hwnd, (HMENU)211, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("/"), WS_VISIBLE | WS_CHILD, 335, 190, 10, 25, hwnd, (HMENU)212, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("TIME"), WS_VISIBLE | WS_CHILD, 345, 190, 60, 25, hwnd, (HMENU)213, NULL, NULL);
+}
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
+{
+	// Register the window class.
+	const wchar_t CLASS_NAME[] = L"Sample Window Class";
+
+	WNDCLASS wc = {};
+	wc.lpfnWndProc = WindowProc;
+	wc.hInstance = hInstance;
+	wc.lpszClassName = CLASS_NAME;
+
+	HMENU hmenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MENU1));
+
+	RegisterClass(&wc);
+
+	// Create the window.
+
+	HWND hwnd = CreateWindowEx(
+		0,                              // Optional window styles.
+		CLASS_NAME,                     // Window class
+		L"EmotivUserApplication",    // Window text
+		WS_OVERLAPPEDWINDOW,            // Window style
+
+		// Size and position
+		CW_USEDEFAULT, CW_USEDEFAULT, 500, 440,
+
+		NULL,       // Parent window    
+		hmenu,       // Menu
+		hInstance,  // Instance handle
+		NULL       // Additional application data
+		);
+
+	createTextBoxes(hInstance, hwnd);
+
+	if (hwnd == NULL)
 	{
-		for(int y = 0; y < numberChannels; y++)
-		{
-			if(isFull(Data))
-			{
-				printf("Data is full\n");
-				add_raw_data_buffer(Queue, Data);
-				Data = new raw_data_buffer(h.get_num_channels(), FFT_SIZE);
-			}
-			Data->channel_data_buffer[y][Data->dataUsed] = h.get_buffer_data(y,i);
-			printf("Buffer position [%i][%i] set to %.4lf\n",y, Data->dataUsed, Data->channel_data_buffer[y][Data->dataUsed]);
-		}
-		Data->dataUsed++;
+		return 0;
 	}
 
-}
+	ShowWindow(hwnd, nCmdShow);
 
-void processRawData(rawQueue& Queue, headset& h, bool& stopLoop)
-{
-	FILE* F = fopen("textFile.txt", "w");
-	FILE* C = fopen("CSVFile.csv", "w");
+	
 
-	h.channel_CSV_write(F);
-	h.channel_CSV_write(C);
-
-	rawBuffer rawData = NULL;
-	int Nx = FFT_SIZE;
-	int NFFT = NFFTPowerTwoSamples(Nx);
-	double* imagineArray;
-
-	while(!stopLoop || !isEmpty(Queue)) /*Time has not stopped, button is not pressed*/
+	MSG msg = {};
+	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if(!isEmpty(Queue))
-		{
-			remove_raw_data_buffer(Queue, rawData);
-			file_write_raw_data_buffer(F, rawData);
-			//Preforms FFT
-			for(int i = 0; i<rawData->numChannels; i++)
-			{
-				imagineArray = createLargeArray(NFFT);
-				fillAndPad(imagineArray, rawData->channel_data_buffer[i], Nx, NFFT);
-				four1(imagineArray, NFFT, FOURIER_TYPE);
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 
-				//Stores imagineArray back into RDB
-				rawData->channel_data_buffer[i] = imagineArray;
-
-			}
-			//Writes out FFT vaules
-			write_fft_buffer(NFFT, rawData, C);
-			//Delete rawData Here
-			delete[] imagineArray;
-		}
-	}
-	fclose(C);
-	fclose(F);
-}
-
-//==================================================================================================
-//                       date
-//==================================================================================================
-//Returns the current date.
-//==================================================================================================
-
-string date()
-{
-  time_t t = time(0);
-  tm* loc_t = NULL;
-  loc_t = localtime(&t);
-
-  string s = to_string(loc_t->tm_mon) + "_" + to_string(loc_t->tm_mday) + "_" + to_string(loc_t->tm_year + 1900) +
-            "_" + to_string(loc_t->tm_hour) + "_" + to_string(loc_t->tm_min) + "_" + to_string(loc_t->tm_sec) + ".csv";
-
-  return s;
-}
-
-//========================================================================
-//                    userListen
-//========================================================================
-//Listens for user input
-//========================================================================
-
-void userListen(bool& stopLoop)
-{
-  printf("Enter any character to stop: ");
-  char userInput[40];
-  scanf("%s", userInput);
-  stopLoop = true;
-}
-
-
-//==================================================================================================
-//                       eegResponse
-//==================================================================================================
-//Writes the data from retrieved from the Emotiv Headset to file f in text format. The amount of time
-//data is retrieved is specified by the user in seconds.
-//==================================================================================================
-
-void eegResponseTest(headset& h)
-{
-	float sec = 1;
-	int currentState;
-	unsigned int userID = 0, runTime = -1;
-	bool collectionStatus = false, stopLoop = false;
-	char c = 0;
-	rawQueue bufferQueue = new raw_buffer_queue;
-	rawBuffer buffer = new raw_data_buffer(h.get_num_channels(), FFT_SIZE);
-
-  printf("The current buffer size is %.3f \n\n", sec);
-
-  printf("To enable the timer, type \"time\", else enter \"noTime\" : ");
-  char userInput[40];
-  scanf("%s", userInput);
-
-  if (!strcmp(userInput, "time"))
-  {
-    printf("Enter time for program to run (Seconds): ");
-    scanf("%i", &runTime);
-  }
-
-  //Starting user input listening thread
-  std::thread t1(userListen, std::ref(stopLoop));
-  t1.detach();
-
-  //Starting data processing thread
-  std::thread t2(processRawData, std::ref(bufferQueue), std::ref(h), std::ref(stopLoop));
-
-#ifdef DEBUG
-  printf("Threads created sucessfully\n");
-#endif
-
-  EE_EngineConnect();
-	EE_DataSetBufferSizeInSec(sec);
-	EmoEngineEventHandle eEvent = EE_EmoEngineEventCreate();
-	EmoStateHandle eState = EE_EmoStateCreate();
-	DataHandle hData = EE_DataCreate();
-
-#ifdef DEBUG
-	printf("Connected to EmoEngine\n");
-#endif
-
-	timer t;
-	t.time_start();
-	unsigned int dataTime;
-
-	while(!stopLoop  && t.time_spent() <= runTime)
-	{
-		currentState = EE_EngineGetNextEvent(eEvent);
-		EE_Event_t eventType = EE_EmoEngineEventGetType(eEvent);
-		EE_EmoEngineEventGetUserId(eEvent, &userID);
-
-		//Waiting for user connection
-		if (eventType = EE_UserAdded)
-		{
-			EE_DataAcquisitionEnable(userID, true);
-			collectionStatus = true;
-		}
-		if(collectionStatus)
-		{
-			dataTime = t.time_spent();
-			EE_DataUpdateHandle (0, hData);
-			unsigned int numSamples = 0;
-			EE_DataGetNumberOfSample(hData, &numSamples);
-
-			if(numSamples!=0)
-			{
-				h.data_capture(numSamples, hData);
-
-				 fillBuffer(h, buffer, bufferQueue);
-			}
-		}
 	}
 
-	stopLoop = true;
-	t2.join();
-   printf("Data Recording Complete \n");
-   delete buffer;
-   delete bufferQueue;
-}
-
-//================================================================
-//                             channelAdd
-//================================================================
-//Adds a new channel to headset h. All channels can be added at once
-//by entering "all" when prompted to enter a channel.
-//================================================================
-
-void channelAdd(headset& h)
-{
-  printf("\n");
-  bool quit = false;
-  char userInput[40];
-  EE_DataChannels_enum E;
-  while(!quit)
-  {
-    printf("Enter Channel Name to Add or type \"all\" to use all Channels: ");
-    scanf("%s", userInput);
-    if(!strcmp(userInput, "all"))
-    {
-      h.channel_add(ED_AF4);
-      h.channel_add(ED_F8);
-      h.channel_add(ED_F4);
-      h.channel_add(ED_FC6);
-      h.channel_add(ED_T8);
-      h.channel_add(ED_P8);
-      h.channel_add(ED_O2);
-      h.channel_add(ED_O1);
-      h.channel_add(ED_P7);
-      h.channel_add(ED_T7);
-      h.channel_add(ED_FC5);
-      h.channel_add(ED_F3);
-      h.channel_add(ED_F7);
-      h.channel_add(ED_AF3);
-      printf("All channels added \n\n");
-      quit = true;
-    }
-    else if(!strcmp(userInput, "quit"))
-    {
-      quit = true;
-      printf("\n");
-    }
-    else
-    {
-      if(strToEnum(userInput, E)==0)
-      {
-       h.channel_add(E);
-       printf("Channel was added \n\n");
-      }
-      else
-      {
-        printf("Channel does not exist \n");
-      }
-    }
-  }
-}
-
-//=============================================================
-//                    channelRemove
-//=============================================================
-//Removes a channel specified by teh user from headset h.
-//=============================================================
-
-void channelRemove(headset& h)
-{
-  printf("\n");
-  char userInput[40];
-  EE_DataChannels_enum E;
-  bool quit = false;
-  while(!quit)
-  {
-    printf("Enter Channel Name to Remove or type \"all\" to use remove Channels: ");
-    scanf("%s", userInput);
-    if (!strcmp(userInput, "all"))
-    {
-      
-    }
-    else if (!strcmp(userInput, "quit"))
-    {
-      quit = true;
-      printf("\n \n");
-    }
-    else
-    {
-      if(strToEnum(userInput, E) == 0)
-      {
-        h.channel_remove(E);
-        printf("Channel Removed \n\n");
-      }
-      else
-      {
-        printf("Channel does not exist \n\n");
-      }
-    }
-  }
-}
-
-int main(int argc, char* argv)
-{ 
-  headset h;
-  char userInput[40];
-  bool quit = false;
-  while(!quit)
-  {
-    printf("\nEnter Command: ");
-    scanf("%s", userInput);
-    if(!strcmp(userInput, "run_test"))
-    {
-    printf("Starting Test \n\n");
-      eegResponseTest(h);
-    }
-    else if(!strcmp(userInput, "add_channels"))
-    {
-        channelAdd(h);
-    } 
-    else if(!strcmp(userInput, "remove_channels"))
-    {
-        channelRemove(h);
-    }        
-    else if(!strcmp(userInput, "quit"))
-    {
-      quit = true;
-    }
-    else
-    {
-      printf("Unknown Command \n");
-    }
-  }
 	return 0;
+}
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+	case WM_CREATE:
+		createChannelButtons(hwnd);
+		createHeadsetStatus(hwnd);
+		createFileOutput(hwnd);
+		createRecordStopButton(hwnd);
+		createRunTime(hwnd);
+		break;
+
+	case WM_COMMAND:
+		isChannelChecked(LOWORD(wParam), hwnd);
+		switch (LOWORD(wParam))
+		{
+			case ID_FILE_CLOSE40001:
+					PostQuitMessage(0);
+				break;
+			case ID_HELP_ABOUT:
+				MessageBox(NULL, L"EmotivUserApplication\n Version 1\n EEGalabECU", L"About", MB_OK);
+				break;
+		}
+		break;
+
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_BTNFACE + 1));
+
+		EndPaint(hwnd, &ps);
+	}
+		return 0;
+
+	}
+	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

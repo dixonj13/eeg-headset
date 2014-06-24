@@ -9,3 +9,7 @@ FFTTest/
 FFTTesting/
 RemoteSystemsTempFiles/
 databuffers/
+*.aps
+*.rc
+*.sln
+resource.h

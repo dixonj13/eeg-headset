@@ -46,6 +46,11 @@ int enumIndex(EE_DataChannels_enum E);
  */
 int enumIndex(const char* C);
 
+/* indexToEnum(n, E) sets E to the channel that corresponds
+* with n. 0 is returned if E was assigned successfully. 1
+* is returned otherwise.
+*/
+int indexToEnum(int n, EE_DataChannels_enum& E);
 
 #endif
 

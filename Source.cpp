@@ -2,75 +2,105 @@
 #define UNICODE
 #endif 
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <windows.h>
 #include "resource.h"
-#include "channelMap.h"
-#include "FFTs.h"
-#include "headset.h"
-#include "rawBuffer.h"
-#include "rawBufferQueue.h"
-#include "timeUtil.h"
 #include "edk.h"
+#include "EEGREAD.h"
+#include <shobjidl.h>
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+DWORD WINAPI MyFunction(void* pVoid)
+{
+  MessageBox(NULL, L"testing...", L"testing...", MB_OK);
+  ExitThread(-1);
+}
+
+void selectButton(HWND hwnd)
+{
+  HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | 
+        COINIT_DISABLE_OLE1DDE);
+    if (SUCCEEDED(hr))
+    {
+        IFileOpenDialog *pFileOpen;
+
+        // Create the FileOpenDialog object.
+        hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, 
+                IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+        if (SUCCEEDED(hr))
+        {
+            // Show the Open dialog box.
+            hr = pFileOpen->Show(NULL);
+
+            // Get the file name from the dialog box.
+            if (SUCCEEDED(hr))
+            {
+                IShellItem *pItem;
+                hr = pFileOpen->GetResult(&pItem);
+                if (SUCCEEDED(hr))
+                {
+                    PWSTR pszFilePath;
+                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+                    // Display the file name to the user.
+                    if (SUCCEEDED(hr))
+                    {
+                        SetDlgItemText(hwnd, 401, pszFilePath);
+                        CoTaskMemFree(pszFilePath);
+                    }
+                    pItem->Release();
+                }
+            }
+            pFileOpen->Release();
+        }
+        CoUninitialize();
+    }
+}
 
 void createChannelButtons(HWND hwnd)
 {
 	CreateWindow(TEXT("static"), TEXT("Channels: "), WS_VISIBLE | WS_CHILD, 50, 30, 80, 25, hwnd, (HMENU)200, NULL, NULL);
 
 	CreateWindow(TEXT("Button"), TEXT("All"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 50, 80, 25, hwnd, (HMENU)100, NULL, NULL);
-	CheckDlgButton(hwnd, 100, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("AF3"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 70, 80, 25, hwnd, (HMENU)3, NULL, NULL);
-	CheckDlgButton(hwnd, 3, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("F7"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 90, 80, 25, hwnd, (HMENU)4, NULL, NULL);
-	CheckDlgButton(hwnd, 4, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("F3"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 110, 80, 25, hwnd, (HMENU)5, NULL, NULL);
-	CheckDlgButton(hwnd, 5, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("FC5"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 130, 80, 25, hwnd, (HMENU)6, NULL, NULL);
-	CheckDlgButton(hwnd, 6, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("T7"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 150, 80, 25, hwnd, (HMENU)7, NULL, NULL);
-	CheckDlgButton(hwnd, 7, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("P7"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 170, 80, 25, hwnd, (HMENU)8, NULL, NULL);
-	CheckDlgButton(hwnd, 8, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("O1"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 190, 80, 25, hwnd, (HMENU)9, NULL, NULL);
-	CheckDlgButton(hwnd, 9, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("O2"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 210, 80, 25, hwnd, (HMENU)10, NULL, NULL);
-	CheckDlgButton(hwnd, 10, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("P8"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 230, 80, 25, hwnd, (HMENU)11, NULL, NULL);
-	CheckDlgButton(hwnd, 11, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("T8"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 250, 80, 25, hwnd, (HMENU)12, NULL, NULL);
-	CheckDlgButton(hwnd, 12, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("FC6"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 270, 80, 25, hwnd, (HMENU)13, NULL, NULL);
-	CheckDlgButton(hwnd, 13, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("F4"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 290, 80, 25, hwnd, (HMENU)14, NULL, NULL);
-	CheckDlgButton(hwnd, 14, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("F8"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 310, 80, 25, hwnd, (HMENU)15, NULL, NULL);
-	CheckDlgButton(hwnd, 15, BST_CHECKED);
 
 	CreateWindow(TEXT("Button"), TEXT("AF4"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 330, 80, 25, hwnd, (HMENU)16, NULL, NULL);
-	CheckDlgButton(hwnd, 16, BST_CHECKED);
 }
 
-void isChannelChecked(int boxID, HWND hwnd)
+void isChannelChecked(int boxID, HWND hwnd, headset& h)
 {
 	bool checked = IsDlgButtonChecked(hwnd, boxID);
 	if (checked)
 	{
 		CheckDlgButton(hwnd, boxID, BST_UNCHECKED);
-		//Remove Channel
 		switch (boxID)
 		{
 			case 115:
@@ -80,10 +110,11 @@ void isChannelChecked(int boxID, HWND hwnd)
 				for (int i = 3; i <= 16; i++)
 				{
 					CheckDlgButton(hwnd, i, BST_UNCHECKED);
+          remove_channel(h, i);
 				}
 			break;
 			default:
-				//channelAdd(h, boxID);
+				remove_channel(h, boxID);
 				break;
 		}
 	}
@@ -99,10 +130,11 @@ void isChannelChecked(int boxID, HWND hwnd)
 				for (int i = 3; i <= 16; i++)
 				{
 					CheckDlgButton(hwnd, i, BST_CHECKED);
+          add_channel(h, i);
 				}
 			break;
 			default:
-				//channelRemove(h, boxID);
+				add_channel(h, boxID);
 				break;
 		}
 	}
@@ -132,6 +164,7 @@ void createTextBoxes(HINSTANCE hInstance, HWND hwnd)
 void createRecordStopButton(HWND hwnd)
 {
 	CreateWindow(TEXT("Button"), TEXT("RECORD"), WS_VISIBLE | WS_CHILD, 165, 140, 80, 25, hwnd, (HMENU)500, NULL, NULL);
+  //EnableWindow(GetDlgItem(hwnd, 500), false);
 	CreateWindow(TEXT("Button"), TEXT("Timed"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 255, 140, 65, 25, hwnd, (HMENU)115, NULL, NULL);
 	CreateWindow(TEXT("Button"), TEXT("STOP"), WS_VISIBLE | WS_CHILD, 165, 240, 80, 25, hwnd, (HMENU)501, NULL, NULL);
 }
@@ -144,14 +177,24 @@ void createRunTime(HWND hwnd)
 	CreateWindow(TEXT("static"), TEXT("TIME"), WS_VISIBLE | WS_CHILD, 345, 190, 60, 25, hwnd, (HMENU)213, NULL, NULL);
 }
 
+inline headset* GetAppState(HWND hwnd)
+{
+    LONG_PTR ptr = GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    headset* head = reinterpret_cast<headset*>(ptr);
+    return head;
+}
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
 {
+  headset* head = new headset;
+  
 	// Register the window class.
 	const wchar_t CLASS_NAME[] = L"Sample Window Class";
 
 	WNDCLASS wc = {};
 	wc.lpfnWndProc = WindowProc;
 	wc.hInstance = hInstance;
+  wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	wc.lpszClassName = CLASS_NAME;
 
 	HMENU hmenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MENU1));
@@ -172,7 +215,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 		NULL,       // Parent window    
 		hmenu,       // Menu
 		hInstance,  // Instance handle
-		NULL       // Additional application data
+		head      // Additional application data
 		);
 
 	createTextBoxes(hInstance, hwnd);
@@ -199,6 +242,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  wchar_t fileName[100], filePath[100];
+  headset* head;
+  CREATESTRUCT *pCreate;
+  bool stop;
+  DWORD ThreadID;
+
+  if(uMsg != WM_CREATE)
+  {
+    head = GetAppState(hwnd);
+  }
+
 	switch (uMsg)
 	{
 	case WM_DESTROY:
@@ -211,10 +265,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		createFileOutput(hwnd);
 		createRecordStopButton(hwnd);
 		createRunTime(hwnd);
+    pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+    head = reinterpret_cast<headset*>(pCreate->lpCreateParams);
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)head);
 		break;
 
 	case WM_COMMAND:
-		isChannelChecked(LOWORD(wParam), hwnd);
+		isChannelChecked(LOWORD(wParam), hwnd, *head);
 		switch (LOWORD(wParam))
 		{
 			case ID_FILE_CLOSE40001:
@@ -223,6 +280,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case ID_HELP_ABOUT:
 				MessageBox(NULL, L"EmotivUserApplication\n Version 1\n EEGalabECU", L"About", MB_OK);
 				break;
+      case 500:
+        CreateThread(NULL, 0, MyFunction, NULL, 0, &ThreadID);
+        //ResumeThread(recvhand);
+      case 501:
+        stop = true;
+        break;
+      case 510:
+        selectButton(hwnd);
+        break;
+      case 400: case 401:
+      GetWindowText(GetDlgItem(hwnd, 400), fileName, 100);
+      GetWindowText(GetDlgItem(hwnd, 401), filePath, 100);
+      
 		}
 		break;
 
@@ -236,7 +306,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		EndPaint(hwnd, &ps);
 	}
 		return 0;
-
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

@@ -13,3 +13,4 @@ databuffers/
 *.rc
 *.sln
 resource.h
+*.ico

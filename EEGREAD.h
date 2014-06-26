@@ -5,14 +5,29 @@
 #include "FFTs.h"
 #include "timeUtil.h"
 #include "channelMap.h"
+#include <Windows.h>
 #include <thread>
 using namespace std;
+
+typedef struct recordingPackage
+{
+  bool stop;
+  headset* head;
+  HWND hwnd;
+
+  recordingPackage(bool s, headset* hs, HWND h)
+  {
+    stop = s;
+    head = hs;
+    hwnd = h;
+  }
+} PACK, *PRPACK;
 
 void write_fft_buffer(int NFFT, rawBuffer& Data, FILE* F);
 
 void fillBuffer(headset& h, rawBuffer& Data, rawQueue& Queue);
 
-void processRawData(rawQueue& Queue, headset& h, bool& stopLoop);
+void processRawData(rawQueue& Queue, headset& h, bool& stopLoop, HWND hwnd);
 
 //==================================================
 //                       date
@@ -38,4 +53,4 @@ void add_channel(headset& h, int channelID);
 
 void remove_channel(headset& h, int channelID);
 
-void eegResponseTest(headset& h, bool& stop);
+DWORD WINAPI eegResponseTest(void* pVoid);

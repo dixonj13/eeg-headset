@@ -4,10 +4,6 @@
  *  Created on: Jun 10, 2014
  *      Author: Chris
  */
-
-#ifndef HEADSET_H_
-#define HEADSET_H_
-
 #ifndef HEADSET_H
 #define HEADSET_H
 
@@ -90,7 +86,3 @@ class headset
 };
 
 #endif
-
-
-
-#endif /* HEADSET_H_ */

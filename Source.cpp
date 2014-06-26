@@ -18,6 +18,56 @@ DWORD WINAPI MyFunction(void* pVoid)
   ExitThread(-1);
 }
 
+void greyAll(HWND hwnd)
+{
+  EnableWindow(GetDlgItem(hwnd, 500), false);
+  EnableWindow(GetDlgItem(hwnd, 400), false);
+  EnableWindow(GetDlgItem(hwnd, 401), false);
+  EnableWindow(GetDlgItem(hwnd, 402), false);
+  EnableWindow(GetDlgItem(hwnd, 510), false);
+  EnableWindow(GetDlgItem(hwnd, 3), false);
+  EnableWindow(GetDlgItem(hwnd, 4), false);
+  EnableWindow(GetDlgItem(hwnd, 5), false);
+  EnableWindow(GetDlgItem(hwnd, 6), false);
+  EnableWindow(GetDlgItem(hwnd, 7), false);
+  EnableWindow(GetDlgItem(hwnd, 8), false);
+  EnableWindow(GetDlgItem(hwnd, 9), false);
+  EnableWindow(GetDlgItem(hwnd, 10), false);
+  EnableWindow(GetDlgItem(hwnd, 11), false);
+  EnableWindow(GetDlgItem(hwnd, 12), false);
+  EnableWindow(GetDlgItem(hwnd, 13), false);
+  EnableWindow(GetDlgItem(hwnd, 14), false);
+  EnableWindow(GetDlgItem(hwnd, 15), false);
+  EnableWindow(GetDlgItem(hwnd, 16), false);
+  EnableWindow(GetDlgItem(hwnd, 0), false);
+  EnableWindow(GetDlgItem(hwnd, 1), false);
+}
+
+void unGreyAll(HWND hwnd)
+{
+  EnableWindow(GetDlgItem(hwnd, 500), true);
+  EnableWindow(GetDlgItem(hwnd, 400), true);
+  EnableWindow(GetDlgItem(hwnd, 401), true);
+  EnableWindow(GetDlgItem(hwnd, 510), true);
+  EnableWindow(GetDlgItem(hwnd, 3), true);
+  EnableWindow(GetDlgItem(hwnd, 4), true);
+  EnableWindow(GetDlgItem(hwnd, 5), true);
+  EnableWindow(GetDlgItem(hwnd, 6), true);
+  EnableWindow(GetDlgItem(hwnd, 7), true);
+  EnableWindow(GetDlgItem(hwnd, 8), true);
+  EnableWindow(GetDlgItem(hwnd, 9), true);
+  EnableWindow(GetDlgItem(hwnd, 10), true);
+  EnableWindow(GetDlgItem(hwnd, 11), true);
+  EnableWindow(GetDlgItem(hwnd, 12), true);
+  EnableWindow(GetDlgItem(hwnd, 13), true);
+  EnableWindow(GetDlgItem(hwnd, 14), true);
+  EnableWindow(GetDlgItem(hwnd, 15), true);
+  EnableWindow(GetDlgItem(hwnd, 16), true);
+  EnableWindow(GetDlgItem(hwnd, 0), true);
+  if(IsDlgButtonChecked(hwnd, 1)) EnableWindow(GetDlgItem(hwnd, 402), true);
+  EnableWindow(GetDlgItem(hwnd, 1), true);
+}
+
 void selectButton(HWND hwnd)
 {
   HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | 
@@ -64,7 +114,7 @@ void createChannelButtons(HWND hwnd)
 {
 	CreateWindow(TEXT("static"), TEXT("Channels: "), WS_VISIBLE | WS_CHILD, 50, 30, 80, 25, hwnd, (HMENU)200, NULL, NULL);
 
-	CreateWindow(TEXT("Button"), TEXT("All"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 50, 80, 25, hwnd, (HMENU)100, NULL, NULL);
+	CreateWindow(TEXT("Button"), TEXT("All"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 50, 80, 25, hwnd, (HMENU)0, NULL, NULL);
 
 	CreateWindow(TEXT("Button"), TEXT("AF3"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 50, 70, 80, 25, hwnd, (HMENU)3, NULL, NULL);
 
@@ -103,10 +153,10 @@ void isChannelChecked(int boxID, HWND hwnd, headset& h)
 		CheckDlgButton(hwnd, boxID, BST_UNCHECKED);
 		switch (boxID)
 		{
-			case 115:
+			case 1:
 				EnableWindow(GetDlgItem(hwnd, 402), false);
 				break;
-			case 100:
+			case 0:
 				for (int i = 3; i <= 16; i++)
 				{
 					CheckDlgButton(hwnd, i, BST_UNCHECKED);
@@ -123,10 +173,10 @@ void isChannelChecked(int boxID, HWND hwnd, headset& h)
 		CheckDlgButton(hwnd, boxID, BST_CHECKED);
 		switch (boxID)
 		{
-			case 115:
+			case 1:
 				EnableWindow(GetDlgItem(hwnd, 402), true);
 			break;
-			case 100:
+			case 0:
 				for (int i = 3; i <= 16; i++)
 				{
 					CheckDlgButton(hwnd, i, BST_CHECKED);
@@ -165,28 +215,37 @@ void createRecordStopButton(HWND hwnd)
 {
 	CreateWindow(TEXT("Button"), TEXT("RECORD"), WS_VISIBLE | WS_CHILD, 165, 140, 80, 25, hwnd, (HMENU)500, NULL, NULL);
   //EnableWindow(GetDlgItem(hwnd, 500), false);
-	CreateWindow(TEXT("Button"), TEXT("Timed"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 255, 140, 65, 25, hwnd, (HMENU)115, NULL, NULL);
+	CreateWindow(TEXT("Button"), TEXT("Timed"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 255, 140, 65, 25, hwnd, (HMENU)1, NULL, NULL);
 	CreateWindow(TEXT("Button"), TEXT("STOP"), WS_VISIBLE | WS_CHILD, 165, 240, 80, 25, hwnd, (HMENU)501, NULL, NULL);
 }
 
 void createRunTime(HWND hwnd)
 {
 	CreateWindow(TEXT("static"), TEXT("Recording Time: "), WS_VISIBLE | WS_CHILD, 165, 190, 115, 25, hwnd, (HMENU)210, NULL, NULL);
-	CreateWindow(TEXT("static"), TEXT("TIME"), WS_VISIBLE | WS_CHILD, 285, 190, 60, 25, hwnd, (HMENU)211, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("TIME"), WS_VISIBLE | WS_CHILD, 285, 190, 45, 25, hwnd, (HMENU)211, NULL, NULL);
 	CreateWindow(TEXT("static"), TEXT("/"), WS_VISIBLE | WS_CHILD, 335, 190, 10, 25, hwnd, (HMENU)212, NULL, NULL);
 	CreateWindow(TEXT("static"), TEXT("TIME"), WS_VISIBLE | WS_CHILD, 345, 190, 60, 25, hwnd, (HMENU)213, NULL, NULL);
 }
 
-inline headset* GetAppState(HWND hwnd)
+void createAll(HWND hwnd)
+{
+  createChannelButtons(hwnd);
+		createHeadsetStatus(hwnd);
+		createFileOutput(hwnd);
+		createRecordStopButton(hwnd);
+		createRunTime(hwnd);
+}
+
+inline PRPACK GetAppState(HWND hwnd)
 {
     LONG_PTR ptr = GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    headset* head = reinterpret_cast<headset*>(ptr);
-    return head;
+    PRPACK package = reinterpret_cast<PRPACK>(ptr);
+    return package;
 }
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
 {
-  headset* head = new headset;
+  PRPACK package = new PACK(false, new headset(), NULL);
   
 	// Register the window class.
 	const wchar_t CLASS_NAME[] = L"Sample Window Class";
@@ -215,7 +274,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 		NULL,       // Parent window    
 		hmenu,       // Menu
 		hInstance,  // Instance handle
-		head      // Additional application data
+		package      // Additional application data
 		);
 
 	createTextBoxes(hInstance, hwnd);
@@ -242,15 +301,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  wchar_t fileName[100], filePath[100];
-  headset* head;
+  wchar_t fileName[100], filePath[100], userTime[100];
   CREATESTRUCT *pCreate;
-  bool stop;
+  bool stop = false;
   DWORD ThreadID;
+  PRPACK package;
+ 
 
   if(uMsg != WM_CREATE)
   {
-    head = GetAppState(hwnd);
+    package = GetAppState(hwnd);
   }
 
 	switch (uMsg)
@@ -260,35 +320,44 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_CREATE:
-		createChannelButtons(hwnd);
-		createHeadsetStatus(hwnd);
-		createFileOutput(hwnd);
-		createRecordStopButton(hwnd);
-		createRunTime(hwnd);
+		createAll(hwnd);
     pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
-    head = reinterpret_cast<headset*>(pCreate->lpCreateParams);
-    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)head);
+    package = reinterpret_cast<PRPACK>(pCreate->lpCreateParams);
+    package->hwnd = hwnd;
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)package);
 		break;
 
 	case WM_COMMAND:
-		isChannelChecked(LOWORD(wParam), hwnd, *head);
+		if(LOWORD(wParam) >-1 && LOWORD(wParam) <17) isChannelChecked(LOWORD(wParam), hwnd, *(package->head));
 		switch (LOWORD(wParam))
 		{
 			case ID_FILE_CLOSE40001:
 					PostQuitMessage(0);
 				break;
+
 			case ID_HELP_ABOUT:
 				MessageBox(NULL, L"EmotivUserApplication\n Version 1\n EEGalabECU", L"About", MB_OK);
 				break;
+
       case 500:
-        CreateThread(NULL, 0, MyFunction, NULL, 0, &ThreadID);
-        //ResumeThread(recvhand);
-      case 501:
-        stop = true;
+        SetDlgItemText(hwnd, 202, L"Recording");
+        GetDlgItemText(hwnd, 402, userTime, 100);
+        SetDlgItemText(hwnd, 213, userTime);
+        greyAll(hwnd);
+        CreateThread(NULL, 0, eegResponseTest, package, 0, &ThreadID);
+        // start running timer
         break;
+
+      case 501:
+        package->stop = true;
+        SetDlgItemText(hwnd, 202, L"Stopped");
+        unGreyAll(hwnd);
+        break;
+
       case 510:
         selectButton(hwnd);
         break;
+
       case 400: case 401:
       GetWindowText(GetDlgItem(hwnd, 400), fileName, 100);
       GetWindowText(GetDlgItem(hwnd, 401), filePath, 100);

@@ -38,9 +38,23 @@ void fillBuffer(headset& h, rawBuffer& Data, rawQueue& Queue)
 	}
 }
 
-void processRawData(rawQueue& Queue, headset& h, bool& stopLoop)
+string getText(int boxID, HWND hwnd)
 {
-	FILE* F = fopen("textFile.txt", "w");
+  wchar_t userTime[100];
+  GetDlgItemText(hwnd, boxID, userTime, 100);
+  char ch[260];
+  char DefChar = ' ';
+  WideCharToMultiByte(CP_ACP,0,userTime,-1, ch,260,&DefChar, NULL);
+  string ss(ch);
+  return ss;
+}
+
+void processRawData(rawQueue& Queue, headset& h, bool& stopLoop, HWND hwnd)
+{
+
+  string outputFileName = getText(400, hwnd);
+
+	FILE* F = fopen(outputFileName.c_str(), "w");
 	FILE* C = fopen("CSVFile.csv", "w");
 
 	h.channel_CSV_write(F);
@@ -128,16 +142,20 @@ void remove_channel(headset& h, int channelID)
 //data is retrieved is specified by the user in seconds.
 //==================================================================================================
 
-void eegResponseTest(headset& h, bool& stop)
+DWORD WINAPI eegResponseTest(void* pVoid)
 {
+  PRPACK package = reinterpret_cast<PRPACK>(pVoid);
 	float sec = 1;
+
 	int currentState;
 	unsigned int userID = 0, runTime = -1;
-	bool collectionStatus = false;     
+	bool collectionStatus = false; 
 	rawQueue bufferQueue = new raw_buffer_queue;
+  headset h = *(package->head);
 	rawBuffer buffer = new raw_data_buffer(h.get_num_channels(), FFT_SIZE);
+  wstring timeString;
 
-  std::thread t2(processRawData, std::ref(bufferQueue), std::ref(h), std::ref(stop));
+  std::thread t2(processRawData, std::ref(bufferQueue), std::ref(h), std::ref(package->stop), std::ref(package->hwnd));
 
   EE_EngineConnect();
 	EE_DataSetBufferSizeInSec(sec);
@@ -148,8 +166,11 @@ void eegResponseTest(headset& h, bool& stop)
 	timer t;
 	t.time_start();
 
-	while(!stop  && t.time_spent() <= runTime)
+	while(!package->stop  && t.time_spent() <= runTime)
 	{
+    timeString = to_wstring(t.time_spent());
+    SetDlgItemTextW(package->hwnd, 211, timeString.c_str());
+
 		currentState = EE_EngineGetNextEvent(eEvent);
 		EE_Event_t eventType = EE_EmoEngineEventGetType(eEvent);
 		EE_EmoEngineEventGetUserId(eEvent, &userID);
@@ -174,8 +195,8 @@ void eegResponseTest(headset& h, bool& stop)
 			}
 		}
 	}
-	t2.join();
-   printf("Data Recording Complete \n");
+	 t2.join();
    delete buffer;
    delete bufferQueue;
+   ExitThread(-1);
 }

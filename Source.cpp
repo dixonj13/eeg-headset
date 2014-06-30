@@ -4,18 +4,94 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <windows.h>
+#include <Windows.h>
 #include "resource.h"
 #include "edk.h"
 #include "EEGREAD.h"
 #include <shobjidl.h>
+#include <tchar.h>
+#include <shlobj.h>
+#include <objidl.h>
+#include <gdiplus.h>
+using namespace Gdiplus;
+
+WCHAR szPath[MAX_PATH];
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-DWORD WINAPI MyFunction(void* pVoid)
+WCHAR* timeFormat(size_t time)
 {
-  MessageBox(NULL, L"testing...", L"testing...", MB_OK);
-  ExitThread(-1);
+  WCHAR secs[4];
+  WCHAR mins[4];
+  WCHAR hrs[4];
+  WCHAR fin[24];
+  WCHAR phold[8];
+  wcscpy(phold, L"0");
+
+  _itot(time % 60, secs, 10); // secs
+  _itot((time / 60) % 60, mins, 10); // mins
+  _itot(time / 3600, hrs, 10); // hrs
+
+
+  if (wcslen(hrs) == 1) wcscat(phold, hrs);
+  else wcscpy(phold, hrs);
+  wcscpy(fin, phold); // 00
+  wcscat(fin, L":");  // 00:
+  wcscpy(phold, L"0");
+  if (wcslen(mins) == 1) wcscat(phold, mins);
+  else wcscpy(phold, mins);
+  wcscat(fin, phold); // 00:00
+  wcscat(fin, L":");  // 00:00:
+  wcscpy(phold, L"0");
+  if (wcslen(secs) == 1) wcscat(phold, secs);
+  else wcscpy(phold, secs);
+  wcscat(fin, phold); // 00:00:00
+
+  return fin;
+}
+
+void onTimer(PRPACK package)
+{
+  package->timer++;
+  WCHAR timerStr[20];
+  wcscpy(timerStr, timeFormat(package->timer));
+  SetDlgItemText(package->hwnd, 211, timerStr);
+}
+
+void startTime(PRPACK package)
+{
+    SetTimer(package->hwnd, 0x10, 1000, (TIMERPROC)NULL);
+    InvalidateRect(package->hwnd, NULL, NULL);
+}
+
+void stopTime(PRPACK package)
+{
+  
+    SetDlgItemText(package->hwnd, 211, L"00:00:00");
+    package->timer = 0;
+    KillTimer(package->hwnd, 0x10);
+    InvalidateRect(package->hwnd, NULL, NULL);
+}
+
+
+void onSelectFilePath(HWND hwnd)
+{
+  BROWSEINFO rBI = { 0 };
+  rBI.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
+  rBI.lpszTitle = L"Select Folder for Output Files";
+
+  LPITEMIDLIST pidl = SHBrowseForFolder(&rBI);
+  if (pidl != NULL) 
+  {
+    BOOL fRet = SHGetPathFromIDList(pidl, szPath);
+    SetDlgItemText(hwnd, 401, szPath);
+    IMalloc* imalloc = 0;
+    if (SUCCEEDED(SHGetMalloc(&imalloc)))
+    {
+      imalloc->Free(pidl);
+      imalloc->Release();
+    }
+  }
 }
 
 void greyAll(HWND hwnd)
@@ -198,15 +274,19 @@ void createHeadsetStatus(HWND hwnd)
 
 void createFileOutput(HWND hwnd)
 {
-	CreateWindow(TEXT("static"), TEXT("File Name:"), WS_VISIBLE | WS_CHILD, 165, 70, 75, 25, hwnd, (HMENU)203, NULL, NULL);
-	CreateWindow(TEXT("static"), TEXT("File Path:"), WS_VISIBLE | WS_CHILD, 165, 90, 75, 25, hwnd, (HMENU)203, NULL, NULL);
-	CreateWindow(TEXT("Button"), TEXT("Select"), WS_VISIBLE | WS_CHILD, 390, 90, 80, 21, hwnd, (HMENU)510, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("Text File Name:"), WS_VISIBLE | WS_CHILD, 135, 70, 105, 25, hwnd, (HMENU)203, NULL, NULL);
+  CreateWindow(TEXT("static"), TEXT("FFT File Name:"), WS_VISIBLE | WS_CHILD, 135, 90, 105, 25, hwnd, (HMENU)203, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("File Path:"), WS_VISIBLE | WS_CHILD, 165, 110, 75, 25, hwnd, (HMENU)203, NULL, NULL);
+	CreateWindow(TEXT("Button"), TEXT("Select"), WS_VISIBLE | WS_CHILD, 390, 110, 80, 21, hwnd, (HMENU)510, NULL, NULL);
+  CreateWindow(TEXT("static"), TEXT(".txt"), WS_VISIBLE | WS_CHILD, 390, 70, 40, 25, hwnd, (HMENU)209, NULL, NULL);
+  CreateWindow(TEXT("static"), TEXT(".csv"), WS_VISIBLE | WS_CHILD, 390, 90, 40, 25, hwnd, (HMENU)203, NULL, NULL);
 }
 
 void createTextBoxes(HINSTANCE hInstance, HWND hwnd)
 {
-	HWND fileName = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 240, 70, 140, 20, hwnd, (HMENU)400, hInstance, 0);
-	HWND filePath = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 240, 90, 140, 20, hwnd, (HMENU)401, hInstance, 0);
+	HWND txtfileName = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 240, 70, 140, 20, hwnd, (HMENU)400, hInstance, 0);
+  HWND csvfileName = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 240, 90, 140, 20, hwnd, (HMENU)403, hInstance, 0);
+	HWND filePath = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 240, 110, 140, 20, hwnd, (HMENU)401, hInstance, 0);
 	HWND timeBox = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL | ES_WANTRETURN, 330, 142, 60, 20, hwnd, (HMENU)402, hInstance, 0);
 	EnableWindow(GetDlgItem(hwnd, 402), false);
 }
@@ -216,15 +296,16 @@ void createRecordStopButton(HWND hwnd)
 	CreateWindow(TEXT("Button"), TEXT("RECORD"), WS_VISIBLE | WS_CHILD, 165, 140, 80, 25, hwnd, (HMENU)500, NULL, NULL);
     //EnableWindow(GetDlgItem(hwnd, 500), false);
 	CreateWindow(TEXT("Button"), TEXT("Timed"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 255, 140, 65, 25, hwnd, (HMENU)1, NULL, NULL);
+  CreateWindow(TEXT("static"), TEXT("Seconds"), WS_VISIBLE | WS_CHILD, 400, 143, 80, 25, hwnd, (HMENU)200, NULL, NULL);
 	CreateWindow(TEXT("Button"), TEXT("STOP"), WS_VISIBLE | WS_CHILD, 165, 240, 80, 25, hwnd, (HMENU)501, NULL, NULL);
 }
 
 void createRunTime(HWND hwnd)
 {
 	CreateWindow(TEXT("static"), TEXT("Recording Time: "), WS_VISIBLE | WS_CHILD, 165, 190, 115, 25, hwnd, (HMENU)210, NULL, NULL);
-	CreateWindow(TEXT("static"), TEXT("TIME"), WS_VISIBLE | WS_CHILD, 285, 190, 45, 25, hwnd, (HMENU)211, NULL, NULL);
-	CreateWindow(TEXT("static"), TEXT("/"), WS_VISIBLE | WS_CHILD, 335, 190, 10, 25, hwnd, (HMENU)212, NULL, NULL);
-	CreateWindow(TEXT("static"), TEXT("TIME"), WS_VISIBLE | WS_CHILD, 345, 190, 60, 25, hwnd, (HMENU)213, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("-"), WS_VISIBLE | WS_CHILD, 285, 190, 25, 25, hwnd, (HMENU)211, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("/"), WS_VISIBLE | WS_CHILD, 315, 190, 10, 25, hwnd, (HMENU)212, NULL, NULL);
+	CreateWindow(TEXT("static"), TEXT("-"), WS_VISIBLE | WS_CHILD, 345, 190, 60, 25, hwnd, (HMENU)213, NULL, NULL);
 }
 
 void createAll(HWND hwnd)
@@ -245,7 +326,7 @@ inline PRPACK GetAppState(HWND hwnd)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
 {
-  PRPACK package = new PACK(false, new headset(), NULL);
+  PRPACK package = new PACK(false, new headset(), NULL, new raw_buffer_queue());
   
 	// Register the window class.
 	const wchar_t CLASS_NAME[] = L"Sample Window Class";
@@ -343,19 +424,28 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SetDlgItemText(hwnd, 202, L"Recording");
         GetDlgItemText(hwnd, 402, userTime, 100);
         SetDlgItemText(hwnd, 213, userTime);
+
+        package->timer = 0;
+        startTime(package);
+
         greyAll(hwnd);
-        CreateThread(NULL, 0, eegResponseTest, package, 0, &ThreadID);
-        // start running timer
+        package->stop = false;
+
+        CreateThread(NULL, 0, processRawData, package, 0, &ThreadID);
         break;
 
       case 501:
         package->stop = true;
         SetDlgItemText(hwnd, 202, L"Stopped");
+        SetDlgItemText(hwnd, 211, L"-");
+        SetDlgItemText(hwnd, 212, L"/");
+        SetDlgItemText(hwnd, 213, L"-");
         unGreyAll(hwnd);
+        stopTime(package);
         break;
 
       case 510:
-        selectButton(hwnd);
+        onSelectFilePath(hwnd);
         break;
 
       case 400: case 401:
@@ -364,6 +454,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       
 		}
 		break;
+
+    case WM_TIMER:
+    
+      switch (wParam)
+      {
+        case 0x10:
+         onTimer(package);
+         return 0;
+      }
+      break;
 
 	case WM_PAINT:
 	{

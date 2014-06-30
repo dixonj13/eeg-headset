@@ -14,12 +14,16 @@ typedef struct recordingPackage
   bool stop;
   headset* head;
   HWND hwnd;
+  rawQueue Queue;
+  size_t timer;
 
-  recordingPackage(bool s, headset* hs, HWND h)
+  recordingPackage(bool s, headset* hs, HWND h, rawQueue rQ)
   {
     stop = s;
     head = hs;
     hwnd = h;
+    Queue = rQ;
+    timer = 0;
   }
 } PACK, *PRPACK;
 
@@ -27,7 +31,7 @@ void write_fft_buffer(int NFFT, rawBuffer& Data, FILE* F);
 
 void fillBuffer(headset& h, rawBuffer& Data, rawQueue& Queue);
 
-void processRawData(rawQueue& Queue, headset& h, bool& stopLoop, HWND hwnd);
+DWORD WINAPI processRawData(void* pVoid);
 
 //==================================================
 //                       date

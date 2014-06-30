@@ -38,6 +38,15 @@ void fillBuffer(headset& h, rawBuffer& Data, rawQueue& Queue)
 	}
 }
 
+void prepareFileNames(string& text, string& csv)
+{
+    string csvEX = ".csv";
+    string txtEX = ".txt";
+
+    text = text + txtEX;
+    csv = csv + csvEX;
+}
+
 string getText(int boxID, HWND hwnd)
 {
   wchar_t userTime[100];
@@ -49,13 +58,27 @@ string getText(int boxID, HWND hwnd)
   return ss;
 }
 
-void processRawData(rawQueue& Queue, headset& h, bool& stopLoop, HWND hwnd)
+void setRunTime(HWND hwnd, unsigned int& run)
 {
+  if(IsDlgButtonChecked(hwnd, 1))
+  {
+    string r = getText(402, hwnd);
+    run = atoi(r.c_str());
+  }
+}
 
-  string outputFileName = getText(400, hwnd);
+DWORD WINAPI processRawData(void* pVoid)
+{
+  DWORD ThreadID;
+  PRPACK package = reinterpret_cast<PRPACK>(pVoid);
+  CreateThread(NULL, 0, eegResponseTest, package, 0, &ThreadID);
+  string textOutputFileName = getText(400, package->hwnd);
+  string csvOutputFileName = getText(403, package->hwnd);
+  prepareFileNames(textOutputFileName, csvOutputFileName);
+  headset h = *(package->head);
 
-	FILE* F = fopen(outputFileName.c_str(), "w");
-	FILE* C = fopen("CSVFile.csv", "w");
+	FILE* F = fopen(textOutputFileName.c_str(), "w");
+	FILE* C = fopen(csvOutputFileName.c_str(), "w");
 
 	h.channel_CSV_write(F);
 	h.channel_CSV_write(C);
@@ -65,11 +88,11 @@ void processRawData(rawQueue& Queue, headset& h, bool& stopLoop, HWND hwnd)
 	int NFFT = NFFTPowerTwoSamples(Nx);
 	double* imagineArray;
 
-	while(!stopLoop || !isEmpty(Queue)) /*Time has not stopped, button is not pressed*/
+	while(!package->stop || !isEmpty(package->Queue)) /*Time has not stopped, button is not pressed*/
 	{
-		if(!isEmpty(Queue))
+		if(!isEmpty(package->Queue))
 		{
-			remove_raw_data_buffer(Queue, rawData);
+			remove_raw_data_buffer(package->Queue, rawData);
 			file_write_raw_data_buffer(F, rawData);
 			//Preforms FFT
 			for(int i = 0; i<rawData->numChannels; i++)
@@ -90,6 +113,7 @@ void processRawData(rawQueue& Queue, headset& h, bool& stopLoop, HWND hwnd)
 	}
 	fclose(C);
 	fclose(F);
+  ExitThread(-1);
 }
 
 //==================================================
@@ -150,12 +174,10 @@ DWORD WINAPI eegResponseTest(void* pVoid)
 	int currentState;
 	unsigned int userID = 0, runTime = -1;
 	bool collectionStatus = false; 
-	rawQueue bufferQueue = new raw_buffer_queue;
   headset h = *(package->head);
 	rawBuffer buffer = new raw_data_buffer(h.get_num_channels(), FFT_SIZE);
   wstring timeString;
 
-  std::thread t2(processRawData, std::ref(bufferQueue), std::ref(h), std::ref(package->stop), std::ref(package->hwnd));
 
   EE_EngineConnect();
 	EE_DataSetBufferSizeInSec(sec);
@@ -163,12 +185,10 @@ DWORD WINAPI eegResponseTest(void* pVoid)
 	EmoStateHandle eState = EE_EmoStateCreate();
 	DataHandle hData = EE_DataCreate();
 
-	timer t;
-	t.time_start();
+  setRunTime(package->hwnd, runTime);
 
-	while(!package->stop  && t.time_spent() <= runTime)
+	while(!package->stop  && package->timer <= runTime)
 	{
-    timeString = to_wstring(t.time_spent());
     SetDlgItemTextW(package->hwnd, 211, timeString.c_str());
 
 		currentState = EE_EngineGetNextEvent(eEvent);
@@ -191,12 +211,12 @@ DWORD WINAPI eegResponseTest(void* pVoid)
 			{
 				h.data_capture(numSamples, hData);
 
-				 fillBuffer(h, buffer, bufferQueue);
+				 fillBuffer(h, buffer, package->Queue);
 			}
 		}
 	}
-	 t2.join();
+  
    delete buffer;
-   delete bufferQueue;
+   package->stop = false;
    ExitThread(-1);
 }

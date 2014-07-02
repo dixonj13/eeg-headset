@@ -38,13 +38,11 @@ void fillBuffer(headset& h, rawBuffer& Data, rawQueue& Queue)
 	}
 }
 
-void prepareFileNames(string& text, string& csv)
+void prepareFileName(string& text)
 {
     string csvEX = ".csv";
-    string txtEX = ".txt";
 
-    text = text + txtEX;
-    csv = csv + csvEX;
+    text = text + csvEX;
 }
 
 string getText(int boxID, HWND hwnd)
@@ -72,13 +70,14 @@ DWORD WINAPI processRawData(void* pVoid)
   DWORD ThreadID;
   PRPACK package = reinterpret_cast<PRPACK>(pVoid);
   CreateThread(NULL, 0, eegResponseTest, package, 0, &ThreadID);
-  string textOutputFileName = getText(400, package->hwnd);
-  string csvOutputFileName = getText(403, package->hwnd);
-  prepareFileNames(textOutputFileName, csvOutputFileName);
+  string RawOutputFileName = getText(400, package->hwnd);
+  string FFTOutputFileName = getText(403, package->hwnd);
+  prepareFileName(RawOutputFileName);
+  prepareFileName(FFTOutputFileName);
   headset h = *(package->head);
 
-	FILE* F = fopen(textOutputFileName.c_str(), "w");
-	FILE* C = fopen(csvOutputFileName.c_str(), "w");
+	FILE* F = fopen(RawOutputFileName.c_str(), "w");
+	FILE* C = fopen(FFTOutputFileName.c_str(), "w");
 
 	h.channel_CSV_write(F);
 	h.channel_CSV_write(C);
@@ -189,8 +188,7 @@ DWORD WINAPI eegResponseTest(void* pVoid)
 
 	while(!package->stop  && package->timer <= runTime)
 	{
-    SetDlgItemTextW(package->hwnd, 211, timeString.c_str());
-
+   
 		currentState = EE_EngineGetNextEvent(eEvent);
 		EE_Event_t eventType = EE_EmoEngineEventGetType(eEvent);
 		EE_EmoEngineEventGetUserId(eEvent, &userID);

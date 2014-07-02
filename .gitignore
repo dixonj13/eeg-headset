@@ -1,0 +1,17 @@
+*.vcxproj.*
+*.vcxproj
+DEBUG/
+sensor.*
+*.txt
+*.csv
+.metadata/
+FFTTest/
+FFTTesting/
+RemoteSystemsTempFiles/
+databuffers/
+*.aps
+*.rc
+*.sln
+*.ico
+.sdf
+.suo
